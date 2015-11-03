@@ -1,0 +1,34 @@
+11/03/2015
+
+Implementing a one time pad (OTP) filesystem, from ideas from Sabo/Campbell.
+
+Like VirtualBox, VMware engines and their layout of virtual drives, we
+need a 
+
+Header
+Table, like a FAT (DOS)
+Data
+
+The FAT is likely fixed at creation time.  
+
+Aspects of the Table and Data area are stored in the Header, much like
+the 'superblock' of a filesystem.
+
+The backing store is the one time pad data, of some length.
+
+The Table takes up N sectors/pages of the OTP.  Its entries are
+
+1 name, say 128 bytes.  Written once, so NOT plaintext-stored.
+
+2 offset, in sectors/pages/bytes: written once, so NOT
+plaintext-stored
+
+3 length, in bytes.  Updated, so MUST be stored in the clear??  But
+NOT if length held until 'close' in ram only.
+
+Need two pointers, both of which ARE stored in the clear in the
+Header.
+
+1 Offset of next FAT entry, or index, equivalent.
+
+2 Offset of next data write
