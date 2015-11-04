@@ -1,0 +1,2 @@
+
+void* OTPMap( char* device );

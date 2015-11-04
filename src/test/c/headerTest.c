@@ -34,14 +34,14 @@ int main( int argc, char* argv[] ) {
   size_t length = st.st_size;
 
   void* addr = mmap( NULL, length, PROT_READ | PROT_WRITE,
-					 MAP_PRIVATE, fd, 0 );
+					 MAP_SHARED, fd, 0 );
   if( addr == MAP_FAILED ) {
 	perror( "mmap" );
 	exit(1);
   }
 
   OTPHeader hdr;
-  OTPHeaderInit( &hdr );
+  OTPHeaderInit( &hdr, length );
   OTPHeaderWrite( &hdr, addr );
 
   munmap( addr, length );
