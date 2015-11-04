@@ -2,12 +2,15 @@
 
 #include <fuse.h>
 
-#include "onetimepadfs.h"
+#include "vernamfs.h"
 
 OTPHeader Global;
 void* Addr;
+GPtrArray* Directories;
 
 int main( int argc, char* argv[] ) {
+
+  Directories = g_ptr_array_new();
 
   Addr = OTPMap( "1GZ" );
   

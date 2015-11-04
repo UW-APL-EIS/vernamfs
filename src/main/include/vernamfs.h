@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include <glib.h>
+
 #include <fuse.h>
 
 /*
@@ -47,5 +49,6 @@ void OTPHeaderReport( OTPHeader* );
 
 extern OTPHeader Global;
 extern void* Addr;
+extern GPtrArray* Directories;
 
 #endif

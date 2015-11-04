@@ -10,13 +10,13 @@ VPATH = $(BASEDIR)/src/main/c
 
 VPATH += $(BASEDIR)/src/test/c
 
-CPPFLAGS += `pkg-config --cflags fuse`
+CPPFLAGS += `pkg-config --cflags fuse glib-2.0`
 
 CPPFLAGS += -DFUSE_USE_VERSION=25
 
 CPPFLAGS += -I$(BASEDIR)/src/main/include
 
-LOADLIBES += `pkg-config --libs fuse`
+LOADLIBES += `pkg-config --libs fuse glib-2.0`
 
 LDLIBS += -lm
 
@@ -26,10 +26,10 @@ CFLAGS = -Wall -g
 
 default: vernamfs
 
-vernamfs: main.o header.o mmap.o fuse.o
+vernamfs: main.o vernamfs.o mmap.o fuse.o
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
-$(TESTS) $(TOOLS): headerInfo.o header.o mmap.o
+$(TESTS) $(TOOLS): headerInfo.o vernamfs.o mmap.o
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
 .PHONY: clean
