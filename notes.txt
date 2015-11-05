@@ -52,3 +52,8 @@ so I invoke fuse_main with argc-3, argv+3
 
 But it is not working.  How much of the 'real' cmd line does fuse_main
 expect/need to see?
+
+
+With version 26 -> fuse_main takes 4 args
+
+With version 25 (and earlier?) -> takes 3 args.

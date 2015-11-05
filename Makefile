@@ -13,7 +13,7 @@ VPATH += $(BASEDIR)/src/test/c
 CPPFLAGS += `pkg-config --cflags fuse`
 
 #CPPFLAGS += -DFUSE_USE_VERSION=25
-CPPFLAGS += -DFUSE_USE_VERSION=26
+CPPFLAGS += -DFUSE_USE_VERSION=25
 
 CPPFLAGS += -I$(BASEDIR)/src/main/include
 
