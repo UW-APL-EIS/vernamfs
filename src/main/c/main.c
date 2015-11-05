@@ -56,6 +56,17 @@
  * internally.  Our VFS cannot work in a multi-threaded FUSE loop.
  * All access must be serialized.
  *
+ * INIT
+ * ----
+ *
+ * init - Initialise a new file/device with a VFS.  Writes the VFS
+ * header at the start of the file/device.  Size of the VFS is taken
+ * from the size of the file/device.  User supplies a 'tableSize', which
+ * identifies the maximum number of files that the VFS can hold.  
+ * Can be done in any location (remote or vault), e.g.
+ * 
+ * $ vernamfs init /path/to/my/otp 1024
+ *
  * INFO
  * ----
  * info - Print the metadata about a stored VFS.  Essentially prints
@@ -89,8 +100,13 @@ int main( int argc, char* argv[] ) {
 
   char usage[256];
   sprintf( usage, 
-		   "Usage: %s (mount FILE fuseOptions)|(info FILE)|(ls FILE)", 
-		   argv[0] );
+		   "Usage:\n"
+		   "%s init  FILE tableSize\n"
+		   "%s info  FILE\n"
+		   "%s mount FILE fuseOptions mountPoint\n"
+		   "%s ls    FILE\n"
+		   "%s xls   FILE < ls.out", 
+		   argv[0], argv[0], argv[0], argv[0], argv[0] );
   
   if( argc < 2 ) {
 	fprintf( stderr, "%s\n", usage );
@@ -99,11 +115,13 @@ int main( int argc, char* argv[] ) {
 
   char* cmd = argv[1];
   if( 0 ) {
+  } else if( strcmp( cmd, "init" ) == 0 ) {
+	return initArgs( argc-2, argv+2 );
+  } else if( strcmp( cmd, "info" ) == 0 ) {
+	return infoArgs( argc-2, argv+2 );
   } else if( strcmp( cmd, "mount" ) == 0 ) {
 	// NOTE: fuse_main wants to see the REAL argc, argv (??)
 	return mountArgs( argc, argv ); 
-  } else if( strcmp( cmd, "info" ) == 0 ) {
-	return infoArgs( argc-2, argv+2 );
   } else if( strcmp( cmd, "ls" ) == 0 ) {
 	return lsArgs( argc-2, argv+2 );
   } else if( strcmp( cmd, "xls" ) == 0 ) {

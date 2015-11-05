@@ -5,12 +5,15 @@
 #include <unistd.h>
 
 #include "vernamfs.h"
+#include "version.h"
 
+// Accumulating count of the active file write.  Reset on release
 static uint64_t totalLength = 0;
 
 static void VFSHeaderInit( VFSHeader* thiz, size_t length, int tableSize );
 static void VFSHeaderLoad( VFSHeader* hTarget, void* addr );
 static void VFSHeaderStore( VFSHeader* hSource, void* addr );
+static void VFSHeaderReport( VFSHeader* h );
 
 void VFSInit( VFS* thiz, size_t length, int tableSize ) {
   VFSHeader* h = &thiz->header;
@@ -31,16 +34,9 @@ void VFSStore( VFS* thiz ) {
 // Debug...
 void VFSReport( VFS* thiz ) {
   VFSHeader* h = &thiz->header;
-  printf( "Magic: %"PRIx64" (%.8s)\n", h->magic, (char*)&h->magic );
-  printf( "Length: %"PRIx64"\n", h->length );
-  printf( "PageSize: %"PRIx64"\n", h->pageSize );
-  printf( "TableOffset: %"PRIx64"\n", h->tableOffset );
-  printf( "TablePtr: %"PRIx64"\n", h->tablePtr );
-  printf( "DataOffset: %"PRIx64"\n", h->dataOffset );
-  printf( "DataPtr: %"PRIx64"\n", h->dataPtr );
+  VFSHeaderReport( h );
 
   //  printf( "Backing: %"PRIx64"\n", (uint64_t)thiz->backing );
-
 }
 
 // When fuse sees an 'open'...
@@ -111,6 +107,9 @@ void VFSRelease( VFS* thiz ) {
 
 static void VFSHeaderInit( VFSHeader* thiz, size_t length, int tableSize ) {
   thiz->magic = VERNAMFS_MAGIC;
+  thiz->version = (MAJOR_VERSION << 16) | (MINOR_VERSION << 8) |
+	PATCH_VERSION;
+  thiz->flags = 0;
   thiz->length = length;
   thiz->pageSize = sysconf( _SC_PAGE_SIZE );
   thiz->tableOffset = thiz->pageSize;
@@ -119,6 +118,22 @@ static void VFSHeaderInit( VFSHeader* thiz, size_t length, int tableSize ) {
   thiz->dataOffset = thiz->tableOffset + 
 	sizeof( VFSTableEntry ) * thiz->tableSize;
   thiz->dataPtr = thiz->dataOffset;
+}
+
+static void VFSHeaderReport( VFSHeader* h ) {
+  printf( "Magic: %"PRIx64" (%.8s)\n", h->magic, (char*)&h->magic );
+  int maj = (h->version >> 16) & 0xff;
+  int min = (h->version >> 8) & 0xff;
+  int patch = h->version & 0xff;
+  printf( "Version: %d.%d.%d\n", maj, min, patch );
+  printf( "Flags: %04X\n", h->flags );
+  printf( "Length: %"PRIx64"\n", h->length );
+  printf( "PageSize: %"PRIx64"\n", h->pageSize );
+  printf( "TableOffset: %"PRIx64"\n", h->tableOffset );
+  printf( "TableSize: %d\n", h->tableSize );
+  printf( "TablePtr: %"PRIx64"\n", h->tablePtr );
+  printf( "DataOffset: %"PRIx64"\n", h->dataOffset );
+  printf( "DataPtr: %"PRIx64"\n", h->dataPtr );
 }
 
 static void VFSHeaderLoad( VFSHeader* hTarget, void* addr ) {

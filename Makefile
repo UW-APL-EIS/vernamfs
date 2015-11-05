@@ -1,5 +1,9 @@
 BASEDIR ?= $(abspath .)
 
+MAJOR_VERSION = 1
+MINOR_VERSION = 0
+PATCH_VERSION = 0
+
 BINARIES = vernamfs
 
 TESTS = mmapTest headerTest 
@@ -10,14 +14,13 @@ VPATH = $(BASEDIR)/src/main/c
 
 VPATH += $(BASEDIR)/src/test/c
 
-CPPFLAGS += `pkg-config --cflags fuse`
 
 #CPPFLAGS += -DFUSE_USE_VERSION=25
 CPPFLAGS += -DFUSE_USE_VERSION=25
 
-CPPFLAGS += -I$(BASEDIR)/src/main/include
+CPPFLAGS += -D_FILE_OFFSET_BITS=64
 
-LOADLIBES += `pkg-config --libs fuse`
+CPPFLAGS += -I$(BASEDIR)/src/main/include
 
 LDLIBS += -lm
 
@@ -27,11 +30,22 @@ CFLAGS = -Wall -g
 
 default: $(BINARIES)
 
-vernamfs: main.o vernamfs.o fuse.o mount.o info.o ls.o xls.o
+vernamfs: main.o vernamfs.o fuse.o mount.o init.o info.o ls.o xls.o
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
 $(TESTS) $(TOOLS): headerInfo.o header.o mmap.o
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
+
+$(BASEDIR)/src/main/include/version.h : $(BASEDIR)/Makefile
+	@echo "#define MAJOR_VERSION" $(MAJOR_VERSION) \
+	| tee $(BASEDIR)/src/main/include/version.h
+	@echo "#define MINOR_VERSION" $(MINOR_VERSION) \
+	| tee -a $(BASEDIR)/src/main/include/version.h
+	@echo "#define PATCH_VERSION" $(PATCH_VERSION) \
+	| tee -a $(BASEDIR)/src/main/include/version.h
+
+.PHONY: ver.h
+ver.h : $(BASEDIR)/src/main/include/version.h
 
 .PHONY: clean
 clean:
