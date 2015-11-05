@@ -10,26 +10,21 @@
 #include "cmds.h"
 #include "vernamfs.h"
 
-// argc, argv straight from main, NOT shifted...
+// argc, argv straight from main, NOT shifted, since fuse_main needs argv[0] ?
 int mountArgs( int argc, char* argv[] ) {
 
   char* usage = "Usage: mount OTPFILE fuseOptions";
 
   /*
-	Must be 4+, since (1) vernamfs, (2) mount, (3) our OTP file and 
-	(4) a fuse mount point
+	Must be 4+, since (1) progName, (2) 'mount', (3) our OTP file and 
+	(4) a fuse mount point. 5+ would be any fuseOptions
   */
-  if( argc < 2 ) {
+  if( argc < 4 ) {
 	fprintf( stderr, "%s\n", usage );
 	return -1;
   }
 
-  printf( "argc %d\n", argc );
-  char** cpp;
-  for( cpp = argv; *cpp; cpp++ )
-	printf( "argv %s\n", *cpp );
-	
-  char* file = argv[0];
+  char* file = argv[2];
   struct stat st;
   int sc = stat( file, &st );
   if( sc || !S_ISREG( st.st_mode ) ) {
@@ -44,7 +39,7 @@ int mountArgs( int argc, char* argv[] ) {
 	return -1;
   }
   
-  void* addr = mmap( NULL, length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0 );
+  void* addr = mmap( NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0 );
   if( addr == MAP_FAILED ) {
 	fprintf( stderr, "%s: MMap failed\n", file );
 	close( fd );
@@ -65,41 +60,25 @@ int mountArgs( int argc, char* argv[] ) {
 	VFSStore( &Global );
   }
 
-  // Skip past our OPTFILE option
-  argc--;
-  argv++;
+  /*
+	Re-org the command line so that fuse_main doesn't see our 'mount'
+	subcommand literal nor our OPTFILE.  Given that we MUST run the
+	single-threaded fuse loop, overwrite our argv[1] with the '-s'
+	option that forces single-threadedness, then shift all other args
+	(including the NULL) down one place, which eliminates our OPTFILE
+	from the args list.
 
-  // LOOK: We MUST have single-threaded access...
-  
-  int haveSOption = 0;
-  for( cpp = argv; *cpp; cpp++ ) {
-	char* cp = *cpp;
-	if( strlen( cp ) > 1 && strcmp( "-s", cp ) == 0 ) {
-	  haveSOption = 1;
-	  break;
-	}
-  }
+	Note how we are preserving argv[0].  Note quite sure WHY we need
+	to do this, but if we don't, Fuse does NOT work and we get left
+	with un-unmountable broken mount points!  Fuse is using some
+	property of argv[0] for sure.
+  */
+  argv[1] = "-s";
+  int i;
+  for( i = 2; i < argc; i++ )
+	argv[i] = argv[i+1];
 
-  if( haveSOption ) {
-	printf( "argc %d\n", argc );
-	for( cpp = argv; *cpp; cpp++ )
-	  printf( "argv %s\n", *cpp );
-	return fuse_main( argc, argv, &vernamfs_ops, NULL );
-  }
-
-  char** argv2 = (char**)malloc( (argc+2) * sizeof( char* ) );
-  argv2[0] = "-s";
-  int i = 1;
-  for( cpp = argv; *cpp; cpp++, i++ ) 
-	argv2[i] = *cpp;
-  argv2[argc+1] = NULL;
-
-  printf( "argc2 %d\n", argc+1 );
-  for( cpp = argv2; *cpp; cpp++ )
-	printf( "argv2 %s\n", *cpp );
-
-  return fuse_main( argc+1, argv2, &vernamfs_ops, NULL );
-
+  return fuse_main( argc-1, argv, &vernamfs_ops );
 }
 
 // eof

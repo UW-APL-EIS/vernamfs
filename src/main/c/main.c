@@ -101,7 +101,7 @@ int main( int argc, char* argv[] ) {
   if( 0 ) {
   } else if( strcmp( cmd, "mount" ) == 0 ) {
 	// NOTE: fuse_main wants to see the REAL argc, argv (??)
-	return mountArgs( argc-2, argv+2 ); 
+	return mountArgs( argc, argv ); 
   } else if( strcmp( cmd, "info" ) == 0 ) {
 	return infoArgs( argc-2, argv+2 );
   } else if( strcmp( cmd, "ls" ) == 0 ) {

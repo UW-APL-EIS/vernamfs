@@ -57,3 +57,62 @@ expect/need to see?
 With version 26 -> fuse_main takes 4 args
 
 With version 25 (and earlier?) -> takes 3 args.
+
+
+vfs mount FILE -d mountPoint NULL
+
+0   1     2    3  4          5  argc = 5
+
+want
+
+vfs -d mountPoint NULL 
+
+0    1  2         3  argc = 3
+
+So 3 -> 1, 4 -> 2, 5 -> 3  and argc -= 2
+
+newArgc = argc - 2
+
+for i = 1, i <= newArgc, i++
+  argv[i] = argv[i+2]
+
+vfs cmd FILE mountPoint NULL
+
+argc = 4
+
+newArgc = 2
+
+for i = 1; <= 2; i++
+
+  argv[1] = mountPoint
+  argv[2] = NULL
+
+BUT: we must have a -s in there too, so use argv[1], was cmd, to hold
+-s, and shift fuseOptions down 1, NOT 2.
+
+vfs cmd FILE mountPoint NULL
+
+argc = 4
+
+to
+
+vfs -s mountPoint NULL
+
+argc = 3
+
+argv[1] = -s
+
+for i = 2; i < argc; i++
+  argv[i] = argv[i+1]
+
+vfs cmd file -f mounPoint NULL   argc = 5
+
+argv[1] = -s
+
+argv[2] = -f
+
+argv[3] = mounPoint
+
+argv[4] = NULL
+
+argc = 4
