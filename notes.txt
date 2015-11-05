@@ -32,3 +32,23 @@ Header.
 1 Offset of next FAT entry, or index, equivalent.
 
 2 Offset of next data write
+
+11/4/15:
+
+Suddenly odd fuse mount errors.  i am not understanding how my argc,
+argv re-allocation is somehow confusing fuse. I want to do this:
+
+./vernamfs mount OPTFILE fuseOptions mountPoint
+
+so i skip past 3 cmd line args: 
+
+1 vernamfs
+
+2 'mount' sub-command
+
+3 OPTFILE
+
+so I invoke fuse_main with argc-3, argv+3
+
+But it is not working.  How much of the 'real' cmd line does fuse_main
+expect/need to see?

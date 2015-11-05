@@ -12,7 +12,8 @@ VPATH += $(BASEDIR)/src/test/c
 
 CPPFLAGS += `pkg-config --cflags fuse`
 
-CPPFLAGS += -DFUSE_USE_VERSION=25
+#CPPFLAGS += -DFUSE_USE_VERSION=25
+CPPFLAGS += -DFUSE_USE_VERSION=26
 
 CPPFLAGS += -I$(BASEDIR)/src/main/include
 
@@ -24,9 +25,9 @@ CFLAGS = -Wall -g
 #CFLAGS += -ansi
 #CFLAGS += -std=c99
 
-default: vernamfs
+default: $(BINARIES)
 
-vernamfs: main.o header.o mmap.o fuse.o
+vernamfs: main.o vernamfs.o fuse.o mount.o info.o ls.o xls.o
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
 $(TESTS) $(TOOLS): headerInfo.o header.o mmap.o
@@ -34,6 +35,6 @@ $(TESTS) $(TOOLS): headerInfo.o header.o mmap.o
 
 .PHONY: clean
 clean:
-	rm $(BINARIES) *.o
+	rm $(BINARIES) $(TESTS) *.o
 
 # eof

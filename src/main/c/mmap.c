@@ -6,7 +6,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-void* OTPMap( char* device ) {
+void* OTPMap( char* device, size_t length ) {
   
   int fd = open( device, O_RDWR );
   if( fd < 0 ) {
@@ -22,7 +22,6 @@ void* OTPMap( char* device ) {
 	return NULL;
   }	
 
-  size_t length = st.st_size;
   
   void* addr = mmap( NULL, length, PROT_READ | PROT_WRITE,
 					 MAP_SHARED, fd, 0 );
