@@ -8,7 +8,7 @@
 /**
  * @author Stuart Maclean
 
-  A 'Vernam File System' viewed as a struct would be
+  A 'Vernam File System' (VFS) viewed as a struct would be
 
   struct {
     VFSHeader header;
@@ -18,9 +18,10 @@
     char data[D];
   } VFS;
 
-  for some table entry count T and data area size D.  The padding areas are
-  to ensure the table and data areas align on a suitable boundary
-  (disk sector or memory page size??).  
+  for some table entry count T and data area size D.  The padding
+  areas are to ensure the table and data areas align on a suitable
+  boundary (disk sector or memory page size??).  The length L of the
+  filesystem is then just sizeof( struct VFS ).
 
   The table is a crude 'file allocation table' (FAT). Entries in this
   table are of type VFSTableEntry:
@@ -32,12 +33,31 @@
   } VFSTableEntry;
 
   which contain the file 'name', where its content lives in the data
-  area (offset) and its length.  The offset acts as a pointer from the
-  table entry into the data area.
+  area (the offset) and its length.  Both offset and length are in
+  bytes.  The offset acts as a pointer from the table entry into the
+  data area. Offsets are likely padded to next page/sector unit.
 
   As files are added to the VFS, the table grows.  It can never
   shrink.  A pointer in the header locates where the next table entry
   should go.
+
+  If we want full 'encryption' of the table using the same xor process
+  used for the data area (see below), this means that we cannot read
+  back the table entries.  In particular, we cannot read back the file
+  names, and hence have no way of saying whether any file 'exists'
+  already.  The conseqeunces of this are that
+
+  1: we can't have a 'directory structure', only a single flat
+  'bucket' into which all files go.
+
+  2: files can be added 2+ times.  Any second (third, etc) write does
+  NOT append to the orginal data.  Rather, it is treated as a separate
+  file.  
+
+  In essence, the filesystem is a list of pairs (P,C) where P is a
+  string resembling a Unix file name, and C is the content (byte
+  sequence) associated with that P.  There is no requirement that all
+  Ps be unique.
 
   The 'backing store' for a VernamFS is a one-time-pad (OTP), i.e. a
   file (or whole device) whose initial contents are just random data
