@@ -105,7 +105,7 @@ void VFSRelease( VFS* thiz ) {
 
 /********************** Private Impl: Header Read/Write ******************/
 
-static void VFSHeaderInit( VFSHeader* thiz, size_t length, int tableSize ) {
+static void VFSHeaderInit( VFSHeader* thiz, size_t length, int tableCapacity ) {
   thiz->magic = VERNAMFS_MAGIC;
   thiz->version = (MAJOR_VERSION << 16) | (MINOR_VERSION << 8) |
 	PATCH_VERSION;
@@ -113,10 +113,10 @@ static void VFSHeaderInit( VFSHeader* thiz, size_t length, int tableSize ) {
   thiz->length = length;
   thiz->pageSize = sysconf( _SC_PAGE_SIZE );
   thiz->tableOffset = thiz->pageSize;
-  thiz->tableSize = tableSize;
+  thiz->tableCapacity = tableCapacity;
   thiz->tablePtr = thiz->tableOffset;
   thiz->dataOffset = thiz->tableOffset + 
-	sizeof( VFSTableEntry ) * thiz->tableSize;
+	sizeof( VFSTableEntry ) * thiz->tableCapacity;
   thiz->dataPtr = thiz->dataOffset;
 }
 
@@ -126,14 +126,14 @@ static void VFSHeaderReport( VFSHeader* h ) {
   int min = (h->version >> 8) & 0xff;
   int patch = h->version & 0xff;
   printf( "Version: %d.%d.%d\n", maj, min, patch );
-  printf( "Flags: %04X\n", h->flags );
-  printf( "Length: %"PRIx64"\n", h->length );
-  printf( "PageSize: %"PRIx64"\n", h->pageSize );
-  printf( "TableOffset: %"PRIx64"\n", h->tableOffset );
-  printf( "TableSize: %d\n", h->tableSize );
-  printf( "TablePtr: %"PRIx64"\n", h->tablePtr );
-  printf( "DataOffset: %"PRIx64"\n", h->dataOffset );
-  printf( "DataPtr: %"PRIx64"\n", h->dataPtr );
+  printf( "Flags: 0x%04X\n", h->flags );
+  printf( "Length: 0x%"PRIx64"\n", h->length );
+  printf( "Padding: 0x%"PRIx64"\n", h->pageSize );
+  printf( "TableOffset: 0x%"PRIx64"\n", h->tableOffset );
+  printf( "TablePtr: 0x%"PRIx64"\n", h->tablePtr );
+  printf( "TableCapacity: %d\n", h->tableCapacity );
+  printf( "DataOffset: 0x%"PRIx64"\n", h->dataOffset );
+  printf( "DataPtr: 0x%"PRIx64"\n", h->dataPtr );
 }
 
 static void VFSHeaderLoad( VFSHeader* hTarget, void* addr ) {

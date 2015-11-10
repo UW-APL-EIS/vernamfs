@@ -6,14 +6,13 @@ PATCH_VERSION = 0
 
 BINARIES = vernamfs
 
-TESTS = mmapTest headerTest 
+TESTS = base64Tests
 
 TOOLS = headerInfo
 
 VPATH = $(BASEDIR)/src/main/c
 
 VPATH += $(BASEDIR)/src/test/c
-
 
 #CPPFLAGS += -DFUSE_USE_VERSION=25
 CPPFLAGS += -DFUSE_USE_VERSION=25
@@ -24,16 +23,19 @@ CPPFLAGS += -I$(BASEDIR)/src/main/include
 
 LDLIBS += -lm
 
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g 
 #CFLAGS += -ansi
 #CFLAGS += -std=c99
 
 default: $(BINARIES)
 
-vernamfs: main.o vernamfs.o fuse.o mount.o init.o info.o ls.o xls.o
+test: $(TESTS)
+
+vernamfs: main.o vernamfs.o fuse.o mount.o init.o info.o \
+	remote.o rls.o vls.o rcat.o vcat.o
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
-$(TESTS) $(TOOLS): headerInfo.o header.o mmap.o
+$(TESTS) $(TOOLS): % : %.o base64.o
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
 $(BASEDIR)/src/main/include/version.h : $(BASEDIR)/Makefile

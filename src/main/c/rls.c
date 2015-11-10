@@ -7,11 +7,12 @@
 
 #include "cmds.h"
 #include "vernamfs.h"
+#include "remote.h"
 
 /**
  * @author Stuart Maclean
  *
- * The 'ls' command enables us to print the VernamFS 'Table', which
+ * The 'rls' command enables us to print the VernamFS 'Table', which
  * contains metadata about each file written to the FS.  The table as
  * stored on the 'remote' unit is actually XOR'ed with the OTP, so is
  * unreadable.  However, we can cat it, so can use that cat result
@@ -19,34 +20,34 @@
  *
  * Example usage:
  *
- * 1: On the 'remote unit': $ vernamfs ls FILE > ls.remote
+ * 1: On the 'remote unit': $ vernamfs rls FILE > ls.remote
  *
  * 2: Transport the ls.remote data to the 'vault location', where we
  * have a copy of the original OTP. 
  *
- * 3: Recover the actual listing: $ vernamfs xls VAULTFILE < ls.remote
+ * 3: Recover the actual listing: $ vernamfs vls VAULTFILE < ls.remote
  *
  * In lab testing, the remote and vault locations are likely the same,
  * so
  *
- * $ vernamfs ls REMOTE.OTP | vernamfs xls VAULT.OTP
+ * $ vernamfs rls REMOTE.OTP | vernamfs vls VAULT.OTP
  *
- * @see xls.c
+ * @see vls.c
  */
 
-int lsArgs( int argc, char* argv[] ) {
+int rlsArgs( int argc, char* argv[] ) {
 
-  char* usage = "Usage: ls OTPFILE";
+  char* usage = "Usage: rls OTPFILE";
 
   if( argc < 1 ) {
 	fprintf( stderr, "%s\n", usage );
 	return -1;
   }
 
-  return lsFile( argv[0] );
+  return rlsFile( argv[0] );
 }
 
-int lsFile( char* file ) {
+int rlsFile( char* file ) {
 
   struct stat st;
   int sc = stat( file, &st );
@@ -73,10 +74,27 @@ int lsFile( char* file ) {
   VFSLoad( &vfs, addr );
 
   /*
-	We write ALL data up to the current tablePtr, so get the header
-	too.  This will be required for later processing of this data.
+	We write a 'Remote Result', which is a triple.  Values for an 'ls'
+	listing are
+
+	1: table offset in whole VFS
+
+	2: table length in bytes
+
+	3: table entries, as N VFSTableEntry structs
   */
-  write( 1, addr, vfs.header.tablePtr );
+
+  VFSRemoteResult vrr;
+  VFSHeader* h = &vfs.header;
+  vrr.offset = h->tableOffset;
+  uint64_t tableExtent = h->tablePtr - h->tableOffset;
+  vrr.length = tableExtent;
+  vrr.data = addr + h->tableOffset;
+
+  // set this for completeness, we are NOT calling RemoteResultFree anyway
+  vrr.dataOnHeap = 0;
+
+  VFSRemoteResultWrite( &vrr, 1 );
 
   munmap( addr, length );
   close( fd );

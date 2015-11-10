@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-#include <fuse.h>
 
 /**
  * @author Stuart Maclean
@@ -117,11 +116,11 @@ typedef struct {
   uint64_t tableOffset;
 
   /*
-    tableSize is maximum number of files VFS can hold, which is same
+    tableCapacity is maximum number of files VFS can hold, which is same
     as number of VFSTableEntry for which space is reserved.  It is 
     NOT the byte count of that space.
   */
-  uint32_t tableSize;
+  uint32_t tableCapacity;
 
   uint64_t tablePtr;
   uint64_t dataOffset;

@@ -75,23 +75,23 @@
  * 
  * $ vernamfs info /path/to/my/otp
  *
- * LS
+ * RLS
  * --
  *
- * ls - Cat to stdout the (still xor'ed) VFS file metadata table.
+ * rls - Cat to stdout the (still xor'ed) VFS file metadata table.
  * Works on the remote OTP.  Prints to stdout, so may need
  * re-direction for capture:
  * 
- * remote$ vernam ls /path/to/my/otp > ls.cap
+ * remote$ vernam rls /path/to/my/otp > ls.cap
  *
- * XLS
+ * VLS
  * ---
  *
- * xls - Uses output of ls and the pristine 'vault' OTP to recover
+ * vls - Uses output of rls and the pristine 'vault' OTP to recover
  * actual remote table metadata, which it prints to stdout.  Works on
  * the vault unit:
  *
- * vault$ vernam xls /path/to/my/otpCopy < ls.cap
+ * vault$ vernam rls /path/to/my/otpCopy < ls.cap
  */
 
 VFS Global;
@@ -104,8 +104,8 @@ int main( int argc, char* argv[] ) {
 		   "%s init  FILE tableSize\n"
 		   "%s info  FILE\n"
 		   "%s mount FILE fuseOptions mountPoint\n"
-		   "%s ls    FILE\n"
-		   "%s xls   FILE < ls.out", 
+		   "%s rls   FILE\n"
+		   "%s rls   FILE < rls.out", 
 		   argv[0], argv[0], argv[0], argv[0], argv[0] );
   
   if( argc < 2 ) {
@@ -119,13 +119,17 @@ int main( int argc, char* argv[] ) {
 	return initArgs( argc-2, argv+2 );
   } else if( strcmp( cmd, "info" ) == 0 ) {
 	return infoArgs( argc-2, argv+2 );
+  } else if( strcmp( cmd, "rls" ) == 0 ) {
+	return rlsArgs( argc-2, argv+2 );
+  } else if( strcmp( cmd, "vls" ) == 0 ) {
+	return vlsArgs( argc-2, argv+2 );
+  } else if( strcmp( cmd, "rcat" ) == 0 ) {
+	return rcatArgs( argc-2, argv+2 );
+  } else if( strcmp( cmd, "vcat" ) == 0 ) {
+	return vcatArgs( argc-2, argv+2 );
   } else if( strcmp( cmd, "mount" ) == 0 ) {
 	// NOTE: fuse_main wants to see the REAL argc, argv (??)
 	return mountArgs( argc, argv ); 
-  } else if( strcmp( cmd, "ls" ) == 0 ) {
-	return lsArgs( argc-2, argv+2 );
-  } else if( strcmp( cmd, "xls" ) == 0 ) {
-	return xlsArgs( argc-2, argv+2 );
   } else {
 	fprintf( stderr, "%s: Unknown command\n", cmd );
 	fprintf( stderr, "%s\n", usage );
