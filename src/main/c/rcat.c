@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <sys/mman.h>
@@ -34,9 +35,17 @@
  * @see vcat.c
  */
 
+static int hexOrDecimal( char* s ) {
+  if( strlen( s ) >= 2 && s[0] == '0' &&
+	  (s[1] == 'X' || s[1] == 'x' ) ) {
+	return strtol( s, NULL, 16 );
+  }
+  return atoi( s );
+}
+
 int rcatArgs( int argc, char* argv[] ) {
 
-  char* usage = "Usage: rcat REMOTEOTP offsetHex lengthHex";
+  char* usage = "Usage: rcat OTPREMOTE offset length";
 
   if( argc < 3 ) {
 	fprintf( stderr, "%s\n", usage );
@@ -44,8 +53,8 @@ int rcatArgs( int argc, char* argv[] ) {
   }
 
   char* file = argv[0];
-  uint64_t offset = strtol( argv[1], NULL, 16 );
-  uint64_t length = strtol( argv[2], NULL, 16 );
+  uint64_t offset = hexOrDecimal( argv[1] );
+  uint64_t length = hexOrDecimal( argv[2] );
 
   return rcatFile( file, offset, length );
 }

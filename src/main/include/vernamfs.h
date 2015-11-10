@@ -7,6 +7,10 @@
 /**
  * @author Stuart Maclean
 
+ A 'Vernam File System' --- data storage based on a One Time Pad.  Named
+ after Vernam (https://en.wikipedia.org/wiki/Gilbert_Vernam), a
+ pioneer in this area.
+
   A 'Vernam File System' (VFS) viewed as a struct would be
 
   struct {
@@ -17,7 +21,7 @@
     char data[D];
   } VFS;
 
-  for some table entry count T and data area size D.  The padding
+  for some table entry capacity T and data area size D.  The padding
   areas are to ensure the table and data areas align on a suitable
   boundary (disk sector or memory page size??).  The length L of the
   filesystem is then just sizeof( struct VFS ).
@@ -28,7 +32,7 @@
   typedef struct {
     uint64_t offset;
     uint64_t length;
-    char path[128-16];
+    char path[128-16];		// LOOK: Make 128 configurable ??
   } VFSTableEntry;
 
   which contain the file 'name', where its content lives in the data
@@ -40,11 +44,12 @@
   shrink.  A pointer in the header locates where the next table entry
   should go.
 
-  If we want full 'encryption' of the table using the same xor process
-  used for the data area (see below), this means that we cannot read
-  back the table entries.  In particular, we cannot read back the file
-  names, and hence have no way of saying whether any file 'exists'
-  already.  The conseqeunces of this are that
+  If we want (and we do!) no 'information leak' from the table, we use
+  the same xor process used for the data area (see below).  This means
+  that we cannot read back the table entries (and so nor can anyone
+  else).  In particular, we cannot read back the file names, and hence
+  have no way of saying whether any file 'exists' already.  The
+  conseqeunces of this are that
 
   1: we can't have a 'directory structure', only a single flat
   'bucket' into which all files go.
@@ -53,8 +58,8 @@
   NOT append to the orginal data.  Rather, it is treated as a separate
   file.  
 
-  In essence, the filesystem is a list of pairs (P,C) where P is a
-  string resembling a Unix file name, and C is the content (byte
+  In essence, the 'filesystem' is just a list of pairs (P,C) where P
+  is a string resembling a Unix file name, and C is the content (byte
   sequence) associated with that P.  There is no requirement that all
   Ps be unique.
 
@@ -62,27 +67,29 @@
   file (or whole device) whose initial contents are just random data
   (a OTP!)
 
-  Only the header is ever stored 'as is' into the backing store.  It
-  must be, since it is updated as files are written to the VFS.  These
-  writes must move along a 'table pointer' and a 'data pointer'.
+  Only the header is ever stored 'as is' (in the clear) into the
+  backing store.  It must be, since it is updated as files are written
+  to the VFS.  These writes must move along a 'table pointer' and a
+  'data pointer'.
 
   The table and data areas are stored by first reading the original
-  OTP data, xor'ing the plain text info (table entry data or actual
-  data) with the original, and writing back the result to the backing
-  store.  Any such write must only be done ONCE, else recovery of any
-  plain text is impossible.  Further, since the table and data areas
-  are XOR'ed on write, they cannot be recovered by a read.  In
-  essence, both the table and data areas are write-only, or actually
-  'write-only-and-ONCE-only' 
+  OTP data at those offsets, xor'ing the plain text info (table entry
+  data or actual data) with the original, and writing back the result
+  to the backing store.  Any such write must only be done ONCE, else
+  recovery of any plain text is impossible.  Further, since the table
+  and data areas are XOR'ed on write, they cannot be recovered by a
+  read.  In essence, both the table and data areas are write-only, or
+  actually 'write-only-and-ONCE-only'.  Every single byte in the
+  backing store past the Header must be written at MOST one time.
 
   TODO:
 
   1 Have redundant copies of the header and table throughout the backing
-  store, perhaps at end.  
+  store, perhaps at end?  
 
   2 Include 'fixups' as used in NTFS, where a multi-byte value write
   becomes atomic, eliminating (or reducing?)  chances of data
-  structure corruption in either VFSHeader or VFSTableEntry.
+  structure corruption in either VFSHeader or VFSTableEntry?
 
 */
 
@@ -112,7 +119,7 @@ typedef struct {
     device, or perhaps a partition on a device.
   */
   uint64_t length;
-  uint64_t pageSize;
+  uint64_t padding;
   uint64_t tableOffset;
 
   /*
@@ -131,7 +138,7 @@ typedef struct {
 typedef struct {
   uint64_t offset;
   uint64_t length;
-  char path[128-16];
+  char path[128-16];	// LOOK: The 128 should be configurable!
 } VFSTableEntry;
 
 

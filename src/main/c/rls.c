@@ -37,7 +37,7 @@
 
 int rlsArgs( int argc, char* argv[] ) {
 
-  char* usage = "Usage: rls OTPFILE";
+  char* usage = "Usage: rls OTPREMOTE";
 
   if( argc < 1 ) {
 	fprintf( stderr, "%s\n", usage );

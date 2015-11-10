@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <fuse.h>
+
 #include "vernamfs.h"
 
 static int vernamfs_getattr(const char *path, struct stat *stbuf ) {

@@ -6,7 +6,7 @@ PATCH_VERSION = 0
 
 BINARIES = vernamfs
 
-TESTS = base64Tests
+TESTS = base64Tests numParseTests
 
 TOOLS = headerInfo
 
@@ -35,7 +35,7 @@ vernamfs: main.o vernamfs.o fuse.o mount.o init.o info.o \
 	remote.o rls.o vls.o rcat.o vcat.o
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
-$(TESTS) $(TOOLS): % : %.o base64.o
+$(TESTS) $(TOOLS): % : %.o
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
 $(BASEDIR)/src/main/include/version.h : $(BASEDIR)/Makefile

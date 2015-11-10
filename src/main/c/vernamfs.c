@@ -100,7 +100,7 @@ void VFSRelease( VFS* thiz ) {
   totalLength = 0;
   h->tablePtr += sizeof( VFSTableEntry );
   h->dataPtr = (uint64_t)
-	ceil(h->dataPtr / (double)h->pageSize) * h->pageSize;
+	ceil(h->dataPtr / (double)h->padding) * h->padding;
 }
 
 /********************** Private Impl: Header Read/Write ******************/
@@ -111,8 +111,11 @@ static void VFSHeaderInit( VFSHeader* thiz, size_t length, int tableCapacity ) {
 	PATCH_VERSION;
   thiz->flags = 0;
   thiz->length = length;
-  thiz->pageSize = sysconf( _SC_PAGE_SIZE );
-  thiz->tableOffset = thiz->pageSize;
+
+  // LOOK: Would this be better off as sectorSize == 512 bytes??
+  thiz->padding = sysconf( _SC_PAGE_SIZE );
+
+  thiz->tableOffset = thiz->padding;
   thiz->tableCapacity = tableCapacity;
   thiz->tablePtr = thiz->tableOffset;
   thiz->dataOffset = thiz->tableOffset + 
@@ -128,7 +131,7 @@ static void VFSHeaderReport( VFSHeader* h ) {
   printf( "Version: %d.%d.%d\n", maj, min, patch );
   printf( "Flags: 0x%04X\n", h->flags );
   printf( "Length: 0x%"PRIx64"\n", h->length );
-  printf( "Padding: 0x%"PRIx64"\n", h->pageSize );
+  printf( "Padding: 0x%"PRIx64"\n", h->padding );
   printf( "TableOffset: 0x%"PRIx64"\n", h->tableOffset );
   printf( "TablePtr: 0x%"PRIx64"\n", h->tablePtr );
   printf( "TableCapacity: %d\n", h->tableCapacity );

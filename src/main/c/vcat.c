@@ -1,6 +1,8 @@
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <sys/mman.h>
@@ -104,26 +106,86 @@ int vcatFile( char* vaultFile, char* rcatResultFile, char* rlsResultFile ) {
 	return -1;
   }
 
-  char* remote = rcat->data;
-  char* vault = addr + rcat->offset;
+  char* rData = rcat->data;
+  char* vData = addr + rcat->offset;
 
   // LOOK: do most of this a word at a time...
   int i;
   for( i = 0; i < rcat->length; i++ )
-	content[i] = remote[i] ^ vault[i];
+	content[i] = rData[i] ^ vData[i];
 
   /*
-	TODO: consult rlsResult, transform to plain-text listing (as per vls)
-	and can then look up correct file name based on offsets.  For now
-	just write to STDOUT...
+	Consult any supplied rlsResult, transform to plain-text listing
+	(as per vls) and can then look up correct file name based on
+	matching offsets.  If fails, just write the rcat result to STDOUT.
   */
-  write( STDOUT_FILENO, content, rcat->length );
+  char fileName[128-16] = { 0 };
+  VFSRemoteResult* rls = NULL;
+  if( rlsResultFile ) {
+	int fdRls = open( rlsResultFile, O_RDONLY );
+	if( fdRls < 0 ) {
+	  fprintf( stderr, "Cannot open rlsResult: %s\n", rlsResultFile );
+	} else {
+	  rls = VFSRemoteResultRead( fdRls );
+	  close( fdRls );
+	}
+  }
+  if( rls ) {
+	// LOOK: A nice 'xor two chunks' routine is needed!
+	VFSTableEntry* tableRemote = (VFSTableEntry*)(rls->data);
+	VFSTableEntry* tableVault = (VFSTableEntry*)(addr + rls->offset);
+	int tableEntryCount = rls->length / sizeof( VFSTableEntry );
+	int i;
+	for( i = 0; i < tableEntryCount; i++ ) {
+	  VFSTableEntry* teRemote = tableRemote + i;
+	  VFSTableEntry* teVault =  tableVault + i;
+	  VFSTableEntry teActual;
+	  teActual.offset = teRemote->offset ^ teVault->offset;
+	  teActual.length = teRemote->length ^ teVault->length;
+	  int c;
+	  for( c = 0; c < sizeof( teActual.path ); c++ ) {
+		teActual.path[c] = teRemote->path[c] ^ teVault->path[c];
+	  }
+
+	  if( 0 ) {
+		printf( "%d %"PRIx64" %"PRIx64" %s\n", 
+				i, teActual.offset, teActual.length,
+			  teActual.path );
+	  }
+
+	  if( teActual.offset == rcat->offset ) {
+		printf( "Found %d: %s\n", i, teActual.path );
+		char* cp = teActual.path;
+		if( *cp == '/' )
+		  cp++;
+		strcpy( fileName, cp );
+		break;
+	  }
+	}
+  }
+
+  if( strlen( fileName ) > 0 ) {
+	int fd = open( fileName, 
+				   O_WRONLY | O_CREAT | O_APPEND,
+				   S_IRUSR | S_IRGRP | S_IROTH );
+	int nout = write( fd, content, rcat->length );
+	if( nout != rcat->length ) {
+	  fprintf( stderr, "Failed to write %s: %d = %d (%d)\n",
+			   fileName, (int)rcat->length, nout, errno );
+	}
+	close( fd );
+  } else {
+	write( STDOUT_FILENO, content, rcat->length );
+  }
 
   munmap( addr, vaultLength );
   close( fdVault );
   VFSRemoteResultFree( rcat );
   free( rcat );
-
+  if( rls ) {
+	VFSRemoteResultFree( rls );
+	free( rls );
+  }
   return 0;
 }
 

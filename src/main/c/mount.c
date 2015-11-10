@@ -13,7 +13,7 @@
 // argc, argv straight from main, NOT shifted, since fuse_main needs argv[0] ?
 int mountArgs( int argc, char* argv[] ) {
 
-  char* usage = "Usage: mount OTPFILE fuseOption* mountPoint";
+  char* usage = "Usage: mount OTPREMOTE fuseOption* mountPoint";
 
   /*
 	Must be 4+, since (1) progName, (2) 'mount', (3) our OTP file and 
