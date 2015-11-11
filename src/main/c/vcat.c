@@ -70,7 +70,7 @@ int vcatFile( char* vaultFile, char* rcatResultFile, char* rlsResultFile ) {
 
   if( rcat->offset + rcat->length > vaultLength ) {
 	fprintf( stderr, "Vault length (%"PRIx64") too short, need %"PRIx64"\n",
-			 vaultLength, rcat->offset + rcat->length );
+			 (uint64_t)vaultLength, rcat->offset + rcat->length );
 	VFSRemoteResultFree( rcat );
 	free( rcat );
 	return -1;

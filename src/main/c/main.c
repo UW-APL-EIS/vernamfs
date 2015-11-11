@@ -98,15 +98,17 @@ VFS Global;
 
 int main( int argc, char* argv[] ) {
 
-  char usage[256];
+  char usage[1024];
   sprintf( usage, 
-		   "Usage:\n"
+		   "\nUsage:\n\n"
 		   "%s init  FILE tableSize\n"
 		   "%s info  FILE\n"
 		   "%s mount FILE fuseOptions mountPoint\n"
 		   "%s rls   FILE\n"
-		   "%s rls   FILE < rls.out", 
-		   argv[0], argv[0], argv[0], argv[0], argv[0] );
+		   "%s vls   FILE (stdin | rls.out)\n"
+		   "%s rcat  FILE offset length (both in hex|decimal)\n"
+		   "%s vcat  FILE rcat.out rls.out?\n",
+		   argv[0], argv[0], argv[0], argv[0], argv[0], argv[0], argv[0] );
   
   if( argc < 2 ) {
 	fprintf( stderr, "%s\n", usage );

@@ -7,6 +7,8 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
+#include <fuse.h>
+
 #include "cmds.h"
 #include "vernamfs.h"
 

@@ -1,5 +1,7 @@
 CC = gcc
 
+CFLAGS += -g
+
 CPPFLAGS += `pkg-config --cflags fuse`
 
 LOADLIBES += `pkg-config --libs fuse`

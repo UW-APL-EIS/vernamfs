@@ -59,7 +59,7 @@ int vlsFile( char* vaultFile, char* rlsResult ) {
 	fprintf( stderr, "%s: Not a regular file\n", vaultFile );
 	return -1;
   }
-  size_t vaultLength = st.st_size;
+  off_t vaultLength = st.st_size;
 
   int fdRls = STDIN_FILENO;
   if( rlsResult ) {

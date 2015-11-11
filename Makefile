@@ -6,7 +6,7 @@ PATCH_VERSION = 0
 
 BINARIES = vernamfs
 
-TESTS = base64Tests numParseTests
+TESTS = base64Tests numParseTests deviceSizeTest
 
 TOOLS = headerInfo
 
@@ -14,16 +14,18 @@ VPATH = $(BASEDIR)/src/main/c
 
 VPATH += $(BASEDIR)/src/test/c
 
-#CPPFLAGS += -DFUSE_USE_VERSION=25
-CPPFLAGS += -DFUSE_USE_VERSION=25
-
 CPPFLAGS += -D_FILE_OFFSET_BITS=64
+
+# Use 25 here simply because 2.5.3 is the latest FUSE distro that will
+# build on our target arm-linux platform. On x86, later versions may
+# work.
+CPPFLAGS += -DFUSE_USE_VERSION=25
 
 CPPFLAGS += -I$(BASEDIR)/src/main/include
 
 LDLIBS += -lm
 
-CFLAGS = -Wall -g 
+CFLAGS = -Wall -Werror 
 #CFLAGS += -ansi
 #CFLAGS += -std=c99
 
