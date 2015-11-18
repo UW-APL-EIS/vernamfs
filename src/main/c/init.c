@@ -22,7 +22,7 @@
  * refuse to init unless a force flag supplied?
  */
 int initArgs( int argc, char* argv[] ) {
-  char* usage = "Usage: init OTPFILE tableSize";
+  char* usage = "Usage: init OTPFILE maxFiles";
 
   if( argc < 2 ) {
 	fprintf( stderr, "%s\n", usage );
@@ -30,30 +30,30 @@ int initArgs( int argc, char* argv[] ) {
   }
 
   char* file = argv[0];
-  int tableSize = atoi( argv[1] );
-  if( tableSize < 1 ) {
-	fprintf( stderr, "%s: Table size too small %d\n", argv[1], tableSize );
+  int maxFiles = atoi( argv[1] );
+  if( maxFiles < 1 ) {
+	fprintf( stderr, "%s: Max file count %d too small.\n", argv[0], maxFiles );
 	return -1;
   }
-  return initFile( file, tableSize );
+  return initFile( file, maxFiles );
 }
 
-int initFile( char* file, int tableSize ) {
+int initFile( char* file, int maxFiles ) {
 
   struct stat st;
   int sc = stat( file, &st );
   if( sc || !S_ISREG( st.st_mode ) ) {
-	fprintf( stderr, "%s: Not a regular file\n", file );
-	return -1;
-  }
-  
-  if( st.st_size <= sizeof( VFSHeader ) + tableSize * sizeof( VFSTableEntry ) ){
-	fprintf( stderr, "%s: Too small to contain header+table\n", file );
+	fprintf( stderr, "%s: Not a regular file.\n", file );
 	return -1;
   }
   
   VFS vfs;
-  VFSInit( &vfs, st.st_size, tableSize );
+  sc = VFSInit( &vfs, st.st_size, maxFiles );
+  if( sc ) {
+	fprintf( stderr, "%s:  Device too small.\n", file );
+	return sc;
+  }
+
   int fd = open( file, O_WRONLY );
   int nout = write( fd, &vfs.header, sizeof( VFSHeader ) );
   if( nout != sizeof( VFSHeader ) ){

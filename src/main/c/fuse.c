@@ -23,18 +23,26 @@ static int vernamfs_open( const char* path, struct fuse_file_info* fi ) {
   if( 1 )
 	printf( "%s: %s %x\n", __FUNCTION__, path, fi->flags );
 
-  if( (fi->flags & 3) != O_WRONLY )
-	return -EACCES;
+  // Has to be write-only.  Any read access is meaningless
+  if( (fi->flags & (O_RDONLY|O_WRONLY|O_RDWR)) != O_WRONLY )
+	return -ENOTSUP;
+
+  /*
+	In addition to being write-only, cannot do appends, since cannot
+	locate existing file name and thus data.
+  */
+  if( (fi->flags & O_APPEND) == O_APPEND )
+	return -ENOTSUP;
 
   fi->fh = (uint64_t)&Global;
 
-  VFSAddEntry( &Global, path );
+  int sc = VFSAddEntry( &Global, path );
 
   // LOOK: make reporting a debug option...
   if( 1 ) 
 	VFSReport( &Global );
 
-  return 0;
+  return sc == -1 ? -ENOSPC : 0;
 }
 
 static int vernamfs_truncate(const char *path, off_t size) {
@@ -53,12 +61,12 @@ static int vernamfs_write(const char *path, const char *buf, size_t size,
   if( fi->fh == 0 )
 	return 0;
 
-  VFSWrite( &Global, buf, size );
+  size_t sc = VFSWrite( &Global, buf, size );
   
   if( 1 )
 	VFSReport( &Global );
 
-  return size;
+  return sc == -1 ? -ENOSPC : sc;
 }
 
 static int vernamfs_release(const char *path, struct fuse_file_info *fi) {
@@ -73,6 +81,7 @@ static int vernamfs_release(const char *path, struct fuse_file_info *fi) {
 
   if( 1 )
 	VFSReport( &Global );
+
   return 0;
 }
 

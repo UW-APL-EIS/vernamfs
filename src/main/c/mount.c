@@ -49,18 +49,18 @@ int mountArgs( int argc, char* argv[] ) {
   }
   
   VFSLoad( &Global, addr );
-  VFSReport( &Global );
 
-  // If this backing file/device never had a VFS on it, initialise one now...
+  // If this backing file/device not VFS-initialized, bail
   if( Global.header.magic != VERNAMFS_MAGIC ) {
-
-	// LOOK: User-configurable table size ??
-	int tableSize = 1024;
-
-	VFSInit( &Global, length, tableSize );
-	VFSReport( &Global );
-	VFSStore( &Global );
+	fprintf( stderr, 
+			 "Magic number missing. Initialize with 'vernamfs init %s'.\n", 
+			 file );
+	munmap( addr, length );
+	close( fd );
+	return -1;
   }
+
+  VFSReport( &Global );
 
   /*
 	Re-org the command line so that fuse_main doesn't see our 'mount'

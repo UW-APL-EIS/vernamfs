@@ -119,17 +119,37 @@ typedef struct {
     device, or perhaps a partition on a device.
   */
   uint64_t length;
+
+  /*
+    Padding ensures that file content begins on a memory page or hard
+    disk sector boundary. Currently we are using memory page, likely
+    4096.
+  */
   uint64_t padding;
+
+  /*
+    Where the file allocation table lives.  Comes after the header, 
+    and is aligned by padding value, see above
+  */
   uint64_t tableOffset;
 
   /*
-    tableCapacity is maximum number of files VFS can hold, which is same
+    Maximum number of files VFS can hold, which is same
     as number of VFSTableEntry for which space is reserved.  It is 
     NOT the byte count of that space.
   */
-  uint32_t tableCapacity;
+  uint32_t maxFiles;
 
+  /*
+    TablePtr is the byte index into the table that the next free file will take.
+    Note the units: bytes, NOT simple ordinal 0, 1, etc.
+  */
   uint64_t tablePtr;
+
+
+  /*
+    DataOffset is the index into the table that the next free file will take
+  */
   uint64_t dataOffset;
   uint64_t dataPtr;
   void* backing;
@@ -151,7 +171,12 @@ typedef struct {
   void* backing;
 } VFS;
 
-void VFSInit( VFS* thiz, size_t length, int tableSize );
+/**
+ * @return 0 if initialization worked, or -1 otherwise.  -1 condition
+ * likely due to insufficient space to hold the VFS, given the supplied
+ * length
+ */
+int VFSInit( VFS* thiz, size_t length, int maxFiles );
 
 void VFSLoad( VFS* thiz, void* addr );
 
@@ -165,13 +190,15 @@ void VFSStore( VFS* thiz );
 
 /**
  * Called on fuse_open
+ * 
+ * @return 0 on success, or -1 if no space left to add a new entry.
  */
-void VFSAddEntry( VFS* thiz, const char* name );
+int VFSAddEntry( VFS* thiz, const char* name );
 
 /**
  * Called on fuse_write
  */
-void VFSWrite( VFS* thiz, const void* buf, size_t count );
+size_t VFSWrite( VFS* thiz, const void* buf, size_t count );
 
 /**
  * Called on fuse_release
