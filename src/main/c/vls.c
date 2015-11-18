@@ -33,7 +33,7 @@
 
 int vlsArgs( int argc, char* argv[] ) {
 
-  char* usage = "Usage: vls VAULTOTP rlsResult?";
+  char* usage = "Usage: vls OTPVAULT rlsResult?";
 
   if( argc < 1 ) {
 	fprintf( stderr, "%s\n", usage );
@@ -110,25 +110,30 @@ int vlsFile( char* vaultFile, char* rlsResult ) {
 	return -1;
   }
 
-  VFSTableEntry* tableRemote = (VFSTableEntry*)(vrr->data);
-  VFSTableEntry* tableVault = (VFSTableEntry*)(addr + vrr->offset);
-  int tableEntryCount = vrr->length / sizeof( VFSTableEntry );
+
+  VFS vaultVFS;
+  VFSLoad( &vaultVFS, addr );
+
+  // LOOK: Can/should check vaultVFS.header.tableOffset == vrr->offset
+
+  int tableEntrySize = vaultVFS.header.tableEntrySize;
+  int tableEntryCount = vrr->length / tableEntrySize;
+  char* teActual = (char*)malloc( tableEntrySize );
+  char* rls = vrr->data;
+  char* vls = (char*)(addr + vrr->offset);
   int i;
   for( i = 0; i < tableEntryCount; i++ ) {
-	VFSTableEntry* teRemote = tableRemote + i;
-	VFSTableEntry* teVault =  tableVault + i;
-
-	VFSTableEntry teActual;
-	teActual.offset = teRemote->offset ^ teVault->offset;
-	teActual.length = teRemote->length ^ teVault->length;
-	int c;
-	for( c = 0; c < sizeof( teActual.path ); c++ ) {
-	  teActual.path[c] = teRemote->path[c] ^ teVault->path[c];
-	}
-
+	char* teRemote = rls + i * tableEntrySize;
+	char* teVault =  vls + i * tableEntrySize;
+	int j;
+	for( j = 0; j < tableEntrySize; j++ )
+	  teActual[j] = teRemote[j] ^ teVault[j];
+	VFSTableEntryFixed* tef = (VFSTableEntryFixed*)teActual;
+	char* name = teActual + sizeof( VFSTableEntryFixed );
 	printf( "%s 0x%"PRIx64" 0x%"PRIx64"\n", 
-			teActual.path, teActual.offset, teActual.length );
+			name, tef->offset, tef->length );
   }
+  free( teActual );
 
   VFSRemoteResultFree( vrr );
   free( vrr );

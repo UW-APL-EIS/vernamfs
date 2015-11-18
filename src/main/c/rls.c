@@ -16,7 +16,8 @@
  * contains metadata about each file written to the FS.  The table as
  * stored on the 'remote' unit is actually XOR'ed with the OTP, so is
  * unreadable.  However, we can cat it, so can use that cat result
- * later with a copy of the original OTP to recover the actual table.
+ * later with a copy of the original OTP (the 'vault' copy) to recover
+ * the actual table.
  *
  * Example usage:
  *
@@ -25,12 +26,12 @@
  * 2: Transport the ls.remote data to the 'vault location', where we
  * have a copy of the original OTP. 
  *
- * 3: Recover the actual listing: $ vernamfs vls VAULTFILE < ls.remote
+ * 3: Recover the actual listing: $ vernamfs vls OTPVAULT < ls.remote
  *
  * In lab testing, the remote and vault locations are likely the same,
  * so
  *
- * $ vernamfs rls REMOTE.OTP | vernamfs vls VAULT.OTP
+ * $ vernamfs rls OTPREMOTE | vernamfs vls OTPVAULT
  *
  * @see vls.c
  */
@@ -94,7 +95,8 @@ int rlsFile( char* file ) {
   // set this for completeness, we are NOT calling RemoteResultFree anyway
   vrr.dataOnHeap = 0;
 
-  VFSRemoteResultWrite( &vrr, 1 );
+  int fdResult = STDOUT_FILENO;
+  VFSRemoteResultWrite( &vrr, fdResult );
 
   munmap( addr, length );
   close( fd );

@@ -22,7 +22,7 @@
  * refuse to init unless a force flag supplied?
  */
 int initArgs( int argc, char* argv[] ) {
-  char* usage = "Usage: init OTPFILE maxFiles";
+  char* usage = "Usage: init OTPFILE maxFiles maxFileNameLength?";
 
   if( argc < 2 ) {
 	fprintf( stderr, "%s\n", usage );
@@ -35,10 +35,16 @@ int initArgs( int argc, char* argv[] ) {
 	fprintf( stderr, "%s: Max file count %d too small.\n", argv[0], maxFiles );
 	return -1;
   }
-  return initFile( file, maxFiles );
+
+  int maxFileNameLength = VERNAMFS_NAMELENGTHDEFAULT;
+  if( argc > 2 ) {
+	maxFileNameLength = atoi( argv[2] );
+  }
+
+  return initFile( file, maxFiles, maxFileNameLength );
 }
 
-int initFile( char* file, int maxFiles ) {
+int initFile( char* file, int maxFiles, int maxFileNameLength ) {
 
   struct stat st;
   int sc = stat( file, &st );
@@ -47,8 +53,9 @@ int initFile( char* file, int maxFiles ) {
 	return -1;
   }
   
+  
   VFS vfs;
-  sc = VFSInit( &vfs, st.st_size, maxFiles );
+  sc = VFSInit( &vfs, st.st_size, maxFiles, maxFileNameLength );
   if( sc ) {
 	fprintf( stderr, "%s:  Device too small.\n", file );
 	return sc;
