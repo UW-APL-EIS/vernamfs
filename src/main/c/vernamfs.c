@@ -1,8 +1,10 @@
+#include <errno.h>
 #include <inttypes.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+
 
 #include "vernamfs.h"
 #include "version.h"
@@ -12,14 +14,15 @@ static uint64_t alignUp( uint64_t val, uint64_t boundary );
 // Accumulating count of the active file write.  Reset on release
 static uint64_t totalLength = 0;
 
-static int VFSHeaderInit( VFSHeader* thiz, size_t length, int tableSize );
+static int VFSHeaderInit( VFSHeader* thiz, size_t length, 
+						  int maxFiles, int maxNameLength );
 static void VFSHeaderLoad( VFSHeader* hTarget, void* addr );
 static void VFSHeaderStore( VFSHeader* hSource, void* addr );
 static void VFSHeaderReport( VFSHeader* h );
 
-int VFSInit( VFS* thiz, size_t length, int maxFiles ) {
+int VFSInit( VFS* thiz, size_t length, int maxFiles, int maxNameLength ) {
   VFSHeader* h = &thiz->header;
-  return VFSHeaderInit( h, length, maxFiles );
+  return VFSHeaderInit( h, length, maxFiles, maxNameLength );
 }
 
 void VFSLoad( VFS* thiz, void* addr ) {
@@ -46,35 +49,35 @@ int VFSAddEntry( VFS* thiz, const char* path ) {
 
   VFSHeader* h = &thiz->header;
 
-  // If have allocated all our files, bail.  fuse expected to return ENOSPC
-  if(h->tablePtr == h->tableOffset + h->maxFiles * sizeof( VFSTableEntry) )
-	return -1;
-  
-  VFSTableEntry te;
-  memset( &te, 0, sizeof( VFSTableEntry ) );
+  // If have allocated all our files, bail. The path name is irrelevant.
+  if( h->tablePtr == h->tableOffset + h->maxFiles * h->tableEntrySize )
+	return -ENOSPC;
 
-  // 1: Write the entry name
-  strcpy( te.path, path );
-
-  // 2: Write the entry offset
-  te.offset = h->dataPtr;
-  
   /*
-	3: Write out to backing, XOR'ing as we go. This renders the entry
-	unreadable.  Note that the te.offset is zero (due to the memset),
-	so it is safe to XOR a whole VFSTableEntry.  The XORing of the
-	offset is a no-op.
+	We can accommodate a new file, next check requested name length.
+	The 1 is due to us needing to add a NULL to the stored name.
   */
-  char* dest = (char*)( thiz->backing + h->tablePtr );
-  char* src = (char*)&te;
+  int requiredSpace = strlen( path ) + 1;
+  int maxNameLength =  h->tableEntrySize - sizeof( VFSTableEntryFixed );
+  if( requiredSpace > maxNameLength )
+	return -ENAMETOOLONG;
+
+  // Fill in the data offset in the table entry...
+  VFSTableEntryFixed* te = 
+	(VFSTableEntryFixed*)( thiz->backing + h->tablePtr );
+  te->offset ^= h->dataPtr;
+
+  // Fill in the name in the table entry...
+  char* tableEntryName = 
+	(char*)( thiz->backing + h->tablePtr + sizeof( VFSTableEntryFixed ) );
   int i;
-  for( i = 0; i < sizeof( VFSTableEntry ); i++ )
-	dest[i] ^= src[i];
+  for( i = 0; i < requiredSpace; i++ )
+	tableEntryName[i] ^= path[i];
 
   /*
-	4: Note how the entry length is not filled in until the data
-	length finally known, which at close/release time.  At that time
-	we also bump the tablePtr to start a new table entry.
+	Note how the table entry length field is NOT filled in until the
+	data length finally known, which is at close/release time.  At that
+	time we also bump the tablePtr to start a new table entry.
   */
 
   return 0;
@@ -112,29 +115,53 @@ size_t VFSWrite( VFS* thiz, const void* buf, size_t count ) {
 // When fuse sees a 'release'...
 void VFSRelease( VFS* thiz ) {
   VFSHeader* h = &thiz->header;
-  VFSTableEntry* te = (VFSTableEntry*)( thiz->backing + h->tablePtr );
+  VFSTableEntryFixed* te = 
+	(VFSTableEntryFixed*)( thiz->backing + h->tablePtr );
 
   // Complete the table entry, with xor'ed length, hence unreadable
   te->length ^= totalLength;
 
   // Reset file total length and bump table and data ptrs
   totalLength = 0;
-  h->tablePtr += sizeof( VFSTableEntry );
+  h->tablePtr += h->tableEntrySize;
   h->dataPtr = alignUp( h->dataPtr, h->padding );
 }
 
 /********************** Private Impl: Header Read/Write ******************/
 
-static int VFSHeaderInit( VFSHeader* thiz, size_t length, int maxFiles ) {
+static int VFSHeaderInit( VFSHeader* thiz, size_t length, 
+						  int maxFiles, int maxNameLength ) {
   
+  if( maxFiles < 1 )
+	return -1;
+  if( maxNameLength < 1 || maxNameLength > VERNAMFS_MAXNAMELENGTH )
+	return -1;
+
   // LOOK: Would this be better off as sectorSize == 512 bytes??
   uint64_t padding = sysconf( _SC_PAGE_SIZE );
 
   // The VFSHeader comes first, the table next, at padded offset
   uint64_t tableOffset = alignUp( sizeof( VFSHeader ), padding );
 
-  uint64_t tableExtent = alignUp( maxFiles * sizeof( VFSTableEntry ),
-								  padding );
+  /* 
+	 Given user's suggested maxNameLength, we minimise our
+	 VFSTableEntry size such that it can hold the required fixed parts
+	 (currrently offset and length) and a name, and we pad up to next
+	 2^N.  We know the loop test will succeed, since we checked
+	 maxNameLength too big above.
+  */
+  uint32_t tableEntrySize;
+  int i;
+  for( i = VERNAMFS_MINTABLEENTRYSIZE; i <= VERNAMFS_MAXTABLEENTRYSIZE; i<<=1) {
+	// The 1 is needed for the NULL terminating the name
+	uint64_t spaceForName = i - sizeof( VFSTableEntryFixed ) - 1;
+	if( maxNameLength <= spaceForName ) {
+	  tableEntrySize = i;
+	  break;
+	}
+  }
+
+  uint64_t tableExtent = alignUp( maxFiles * tableEntrySize, padding );
 
   uint64_t minDataArea = maxFiles * padding;
 
@@ -156,6 +183,7 @@ static int VFSHeaderInit( VFSHeader* thiz, size_t length, int maxFiles ) {
   thiz->tableOffset = tableOffset;
   thiz->tablePtr = thiz->tableOffset;
   thiz->maxFiles = maxFiles;
+  thiz->tableEntrySize = tableEntrySize;
 
   thiz->dataOffset = tableOffset + tableExtent;
   thiz->dataPtr = thiz->dataOffset;
@@ -171,6 +199,7 @@ static void VFSHeaderReport( VFSHeader* h ) {
   printf( "Flags: 0x%04X\n", h->flags );
   printf( "Length: 0x%"PRIx64"\n", h->length );
   printf( "Padding: 0x%"PRIx64"\n", h->padding );
+  printf( "TableEntrySize: %d\n", h->tableEntrySize );
   printf( "TableOffset: 0x%"PRIx64"\n", h->tableOffset );
   printf( "TablePtr: 0x%"PRIx64"\n", h->tablePtr );
   printf( "MaxFiles: %d\n", h->maxFiles );

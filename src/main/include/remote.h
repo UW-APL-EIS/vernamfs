@@ -8,14 +8,14 @@
  *
  * The rls and rcat commands produce similar payloads.  We can thus
  * capture that payload type as an 'object' and use it in both places.
- * Can also use this object type in the re-construction vault-side, i.e. in 
- * vls and vcat.
+ * Can also use this object type in the re-construction vault-side,
+ * i.e. in vls and vcat.
  *
  * Basically, anything than be derived remotely and then shipped back
  * to the vault is of the form:
  *
  * 1 offset
- * 2 length
+ * 2 length	(exclusive, i.e. length of the data only)
  * 3 data
  *
  * and we build a struct according to that requirement.  We'll WRITE

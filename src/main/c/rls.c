@@ -16,21 +16,24 @@
  * contains metadata about each file written to the FS.  The table as
  * stored on the 'remote' unit is actually XOR'ed with the OTP, so is
  * unreadable.  However, we can cat it, so can use that cat result
- * later with a copy of the original OTP to recover the actual table.
+ * later with a copy of the original OTP (the 'vault' copy) to recover
+ * the actual table.  The rls result goes to stdout, as would a
+ * regular Unix ls result.
  *
  * Example usage:
  *
- * 1: On the 'remote unit': $ vernamfs rls FILE > ls.remote
+ * 1: On the 'remote unit': $ vernamfs rls OTP > ls.remote
  *
  * 2: Transport the ls.remote data to the 'vault location', where we
  * have a copy of the original OTP. 
  *
- * 3: Recover the actual listing: $ vernamfs vls VAULTFILE < ls.remote
+ * 3: Recover the actual listing: $ vernamfs vls OTPVAULT ls.remote
  *
- * In lab testing, the remote and vault locations are likely the same,
- * so
+ * The ls.remote result can also be supplied on stdin.  This is handy
+ * for lab testing, the remote and vault locations are likely the
+ * same, so
  *
- * $ vernamfs rls REMOTE.OTP | vernamfs vls VAULT.OTP
+ * $ vernamfs rls OTPREMOTE | vernamfs vls OTPVAULT
  *
  * @see vls.c
  */
@@ -72,6 +75,10 @@ int rlsFile( char* file ) {
 
   VFS vfs;
   VFSLoad( &vfs, addr );
+  
+  // LOOK: check magic number, are we actually loading a VFS file?
+
+  VFSHeader* h = &vfs.header;
 
   /*
 	We write a 'Remote Result', which is a triple.  Values for an 'ls'
@@ -85,16 +92,14 @@ int rlsFile( char* file ) {
   */
 
   VFSRemoteResult vrr;
-  VFSHeader* h = &vfs.header;
   vrr.offset = h->tableOffset;
-  uint64_t tableExtent = h->tablePtr - h->tableOffset;
-  vrr.length = tableExtent;
-  vrr.data = addr + h->tableOffset;
+  vrr.length = h->tablePtr - h->tableOffset;
+  vrr.data   = addr + h->tableOffset;
 
-  // set this for completeness, we are NOT calling RemoteResultFree anyway
+  // Set this for completeness, we are NOT calling RemoteResultFree anyway
   vrr.dataOnHeap = 0;
 
-  VFSRemoteResultWrite( &vrr, 1 );
+  VFSRemoteResultWrite( &vrr, STDOUT_FILENO );
 
   munmap( addr, length );
   close( fd );

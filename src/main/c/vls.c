@@ -12,8 +12,8 @@
 #include "remote.h"
 
 /**
- * The 'remote' rls listing expected available on STDIN.  It is of
- * course unintelligible since it is still XOR'ed with the OTP. 
+ * The 'remote' rls listing expected as a file, or on STDIN.  It is of
+ * course unintelligible since it is still XOR'ed with the OTP.
  *
  * The 'vaultFile' is the local, pristine copy of the original OTP.
  *
@@ -25,15 +25,18 @@
  *
  * $ ./vernamfs rls 1M.R| ./vernamfs vls 1M.V
  *
- * Normally the rlsResult would be a file, shipped from remote to
+ * Normally the rls result would be a file, shipped from remote to
  * vault location.
+ *
+ * The vls result is a printout, to stdout, of all allocated file
+ * names with ther associated offset and length within the remote OTP.
  *
  * @see rls.c
  */
 
 int vlsArgs( int argc, char* argv[] ) {
 
-  char* usage = "Usage: vls VAULTOTP rlsResult?";
+  char* usage = "Usage: vls OTPVAULT rlsResult?";
 
   if( argc < 1 ) {
 	fprintf( stderr, "%s\n", usage );
@@ -70,23 +73,24 @@ int vlsFile( char* vaultFile, char* rlsResult ) {
 	}
   }
   
-  VFSRemoteResult* vrr = VFSRemoteResultRead( fdRls );
+  VFSRemoteResult* rrls = VFSRemoteResultRead( fdRls );
   if( rlsResult )
 	close( fdRls );
 
-  if( vrr->offset + vrr->length > vaultLength ) {
+  if( rrls->offset + rrls->length > vaultLength ) {
 	fprintf( stderr, "Vault length (%"PRIx64") too short, need %"PRIx64"\n",
-			 vaultLength, vrr->offset + vrr->length );
-	VFSRemoteResultFree( vrr );
-	free( vrr );
+			 vaultLength, rrls->offset + rrls->length );
+	VFSRemoteResultFree( rrls );
+	free( rrls );
 	return -1;
   }
 
   // printf( "Off %x, len %x\n", rlsOffset, rlsLength );
 
-  if( vrr->length == 0 ) {
-	VFSRemoteResultFree( vrr );
-	free( vrr );
+  // Possible that the remote FS be currently empty
+  if( rrls->length == 0 ) {
+	VFSRemoteResultFree( rrls );
+	free( rrls );
 	return -1;
   }
   
@@ -105,33 +109,43 @@ int vlsFile( char* vaultFile, char* rlsResult ) {
   if( addr == MAP_FAILED ) {
 	fprintf( stderr, "Cannot mmap vaultFile: %s\n", vaultFile );
 	close( fd );
-	VFSRemoteResultFree( vrr );
-	free( vrr );
+	VFSRemoteResultFree( rrls );
+	free( rrls );
 	return -1;
   }
 
-  VFSTableEntry* tableRemote = (VFSTableEntry*)(vrr->data);
-  VFSTableEntry* tableVault = (VFSTableEntry*)(addr + vrr->offset);
-  int tableEntryCount = vrr->length / sizeof( VFSTableEntry );
+  VFS vaultVFS;
+  VFSLoad( &vaultVFS, addr );
+
+  // LOOK: Can/should check vaultVFS.header.tableOffset == vrr->offset
+
+  /*
+	Assumed that the vault header's tableEntrySize matches that of the
+	remote data
+  */
+  int tableEntrySize = vaultVFS.header.tableEntrySize;
+  int tableEntryCount = rrls->length / tableEntrySize;
+  char* teActual = (char*)malloc( tableEntrySize );
+  char* rls = rrls->data;
+  char* vls = (char*)(addr + rrls->offset);
   int i;
   for( i = 0; i < tableEntryCount; i++ ) {
-	VFSTableEntry* teRemote = tableRemote + i;
-	VFSTableEntry* teVault =  tableVault + i;
+	char* teRemote = rls + i * tableEntrySize;
+	char* teVault =  vls + i * tableEntrySize;
+	int j;
+	for( j = 0; j < tableEntrySize; j++ )
+	  teActual[j] = teRemote[j] ^ teVault[j];
+	VFSTableEntryFixed* tef = (VFSTableEntryFixed*)teActual;
+	char* name = teActual + sizeof( VFSTableEntryFixed );
 
-	VFSTableEntry teActual;
-	teActual.offset = teRemote->offset ^ teVault->offset;
-	teActual.length = teRemote->length ^ teVault->length;
-	int c;
-	for( c = 0; c < sizeof( teActual.path ); c++ ) {
-	  teActual.path[c] = teRemote->path[c] ^ teVault->path[c];
-	}
-
+	// The vls result, just a print out of each file's properties
 	printf( "%s 0x%"PRIx64" 0x%"PRIx64"\n", 
-			teActual.path, teActual.offset, teActual.length );
+			name, tef->offset, tef->length );
   }
+  free( teActual );
 
-  VFSRemoteResultFree( vrr );
-  free( vrr );
+  VFSRemoteResultFree( rrls );
+  free( rrls );
 
   munmap( addr, mappedLength );
   close( fd );

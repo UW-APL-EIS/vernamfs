@@ -22,12 +22,12 @@
  * 1: the output of some previous rcat command,
  * 2: the local vault copy of the OTP.
  * 
- * A remote ls listing file is optional, and if supplied, will enable
+ * A remote ls listing (rls) file is optional, and if supplied, will enable
  * naming of the new content.
  *
  * Example usage:
  *
- * vault$ vernamfs vcat VAULTOTP rcat.result rls.result?
+ * vault$ vernamfs vcat OTPVAULT rcat.result rls.result?
  *
  * @see rcat.c
  * @see remote.c
@@ -35,7 +35,7 @@
 
 int vcatArgs( int argc, char* argv[] ) {
 
-  char* usage = "Usage: vcat VAULTOTP rcatResult rlsResult?";
+  char* usage = "Usage: vcat OTPVAULT rcatResult rlsResult?";
 
   if( argc < 2 ) {
 	fprintf( stderr, "%s\n", usage );
@@ -65,22 +65,22 @@ int vcatFile( char* vaultFile, char* rcatResultFile, char* rlsResultFile ) {
 	return -1;
   }
   
-  VFSRemoteResult* rcat = VFSRemoteResultRead( fdRcat );
+  VFSRemoteResult* rrcat = VFSRemoteResultRead( fdRcat );
   close( fdRcat );
 
-  if( rcat->offset + rcat->length > vaultLength ) {
+  if( rrcat->offset + rrcat->length > vaultLength ) {
 	fprintf( stderr, "Vault length (%"PRIx64") too short, need %"PRIx64"\n",
-			 (uint64_t)vaultLength, rcat->offset + rcat->length );
-	VFSRemoteResultFree( rcat );
-	free( rcat );
+			 (uint64_t)vaultLength, rrcat->offset + rrcat->length );
+	VFSRemoteResultFree( rrcat );
+	free( rrcat );
 	return -1;
   }
 
   int fdVault = open( vaultFile, O_RDONLY );
   if( fdVault < 0 ) {
 	perror( "open" );
-	VFSRemoteResultFree( rcat );
-	free( rcat );
+	VFSRemoteResultFree( rrcat );
+	free( rrcat );
 	return -1;
   }
   
@@ -88,8 +88,8 @@ int vcatFile( char* vaultFile, char* rcatResultFile, char* rlsResultFile ) {
   if( addr == MAP_FAILED ) {
 	perror( "mmap" );
 	close( fdVault );
-	VFSRemoteResultFree( rcat );
-	free( rcat );
+	VFSRemoteResultFree( rrcat );
+	free( rrcat );
 	return -1;
   }
 
@@ -97,95 +97,95 @@ int vcatFile( char* vaultFile, char* rcatResultFile, char* rlsResultFile ) {
 	LOOK: if content length too long, a completely in-memory recovery
 	will not be feasible...
   */
-  char* content = malloc( rcat->length );
+  char* content = malloc( rrcat->length );
   if( !content ) {
 	munmap( addr, vaultLength );
 	close( fdVault );
-	VFSRemoteResultFree( rcat );
-	free( rcat );
+	VFSRemoteResultFree( rrcat );
+	free( rrcat );
 	return -1;
   }
 
-  char* rData = rcat->data;
-  char* vData = addr + rcat->offset;
+  char* rData = rrcat->data;
+  char* vData = addr + rrcat->offset;
 
   // LOOK: do most of this a word at a time...
   int i;
-  for( i = 0; i < rcat->length; i++ )
+  for( i = 0; i < rrcat->length; i++ )
 	content[i] = rData[i] ^ vData[i];
 
   /*
 	Consult any supplied rlsResult, transform to plain-text listing
 	(as per vls) and can then look up correct file name based on
-	matching offsets.  If fails, just write the rcat result to STDOUT.
+	matching offsets.  If fails, just write the vcat result to STDOUT.
   */
-  char fileName[128-16] = { 0 };
-  VFSRemoteResult* rls = NULL;
+  char fileName[VERNAMFS_MAXNAMELENGTH+1] = {0};
+  VFSRemoteResult* rrls = NULL;
   if( rlsResultFile ) {
 	int fdRls = open( rlsResultFile, O_RDONLY );
 	if( fdRls < 0 ) {
 	  fprintf( stderr, "Cannot open rlsResult: %s\n", rlsResultFile );
 	} else {
-	  rls = VFSRemoteResultRead( fdRls );
+	  rrls = VFSRemoteResultRead( fdRls );
 	  close( fdRls );
+	  VFS vaultVFS;
+	  VFSLoad( &vaultVFS, addr );
+
+	  // LOOK: Can/should check vaultVFS.header.tableOffset == rrls->offset
+
+	  int tableEntrySize = vaultVFS.header.tableEntrySize;
+	  int tableEntryCount = rrls->length / tableEntrySize;
+	  char* teActual = (char*)malloc( tableEntrySize );
+	  char* rls = rrls->data;
+	  char* vls = (char*)(addr + rrls->offset);
+	  for( i = 0; i < tableEntryCount; i++ ) {
+		char* teRemote = (char*)(rls + i * tableEntrySize);
+		char* teVault  = (char*)(vls + i * tableEntrySize);
+		int j;
+		for( j = 0; j < tableEntrySize; j++ )
+		  teActual[j] = teRemote[j] ^ teVault[j];
+		
+		VFSTableEntryFixed* tef = (VFSTableEntryFixed*)teActual;
+		if( rrcat->offset == tef->offset ) {
+		  char* cp = (char*)tef + sizeof( VFSTableEntryFixed );
+		  //		printf( "Found %d: %s\n", i, cp );
+		  if( *cp == '/' )
+			cp++;
+		  strcpy( fileName, cp );
+		  break;
+		}
+	  }
+	  free( teActual );
+	  VFSRemoteResultFree( rrls );
+	  free( rrls );
 	}
   }
-  if( rls ) {
-	// LOOK: A nice 'xor two chunks' routine is needed!
-	VFSTableEntry* tableRemote = (VFSTableEntry*)(rls->data);
-	VFSTableEntry* tableVault = (VFSTableEntry*)(addr + rls->offset);
-	int tableEntryCount = rls->length / sizeof( VFSTableEntry );
-	int i;
-	for( i = 0; i < tableEntryCount; i++ ) {
-	  VFSTableEntry* teRemote = tableRemote + i;
-	  VFSTableEntry* teVault =  tableVault + i;
-	  VFSTableEntry teActual;
-	  teActual.offset = teRemote->offset ^ teVault->offset;
-	  teActual.length = teRemote->length ^ teVault->length;
-	  int c;
-	  for( c = 0; c < sizeof( teActual.path ); c++ ) {
-		teActual.path[c] = teRemote->path[c] ^ teVault->path[c];
-	  }
-
-	  if( 0 ) {
-		printf( "%d %"PRIx64" %"PRIx64" %s\n", 
-				i, teActual.offset, teActual.length,
-			  teActual.path );
-	  }
-
-	  if( teActual.offset == rcat->offset ) {
-		printf( "Found %d: %s\n", i, teActual.path );
-		char* cp = teActual.path;
-		if( *cp == '/' )
-		  cp++;
-		strcpy( fileName, cp );
-		break;
-	  }
-	}
-  }
-
-  if( strlen( fileName ) > 0 ) {
+  
+  /*
+	Due to the lack of readability of the FS table on the remote unit,
+	it is entirely possible that content was associated with the SAME
+	file name 2+ times. Remotely, they are simply DIFFERENT
+	files. That is not a problem remotely, but is here at the vault.
+	We choose to always APPEND data to any existing local file.
+  */
+  if( strlen( fileName ) ) {
 	int fd = open( fileName, 
 				   O_WRONLY | O_CREAT | O_APPEND,
 				   S_IRUSR | S_IRGRP | S_IROTH );
-	int nout = write( fd, content, rcat->length );
-	if( nout != rcat->length ) {
+	int nout = write( fd, content, rrcat->length );
+	if( nout != rrcat->length ) {
 	  fprintf( stderr, "Failed to write %s: %d = %d (%d)\n",
-			   fileName, (int)rcat->length, nout, errno );
+			   fileName, (int)rrcat->length, nout, errno );
 	}
 	close( fd );
   } else {
-	write( STDOUT_FILENO, content, rcat->length );
+	write( STDOUT_FILENO, content, rrcat->length );
   }
 
   munmap( addr, vaultLength );
   close( fdVault );
-  VFSRemoteResultFree( rcat );
-  free( rcat );
-  if( rls ) {
-	VFSRemoteResultFree( rls );
-	free( rls );
-  }
+  VFSRemoteResultFree( rrcat );
+  free( rrcat );
   return 0;
 }
 

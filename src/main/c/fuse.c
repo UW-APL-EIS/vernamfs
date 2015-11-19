@@ -42,7 +42,7 @@ static int vernamfs_open( const char* path, struct fuse_file_info* fi ) {
   if( 1 ) 
 	VFSReport( &Global );
 
-  return sc == -1 ? -ENOSPC : 0;
+  return sc;
 }
 
 static int vernamfs_truncate(const char *path, off_t size) {

@@ -5,7 +5,7 @@
 
 int initArgs( int argc, char* argv[] );
 
-int initFile( char* file, int tableSize );
+int initFile( char* file, int maxFiles, int maxFileNameLength );
 
 int infoArgs( int argc, char* argv[] );
 

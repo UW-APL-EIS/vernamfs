@@ -141,8 +141,19 @@ typedef struct {
   uint32_t maxFiles;
 
   /*
-    TablePtr is the byte index into the table that the next free file will take.
-    Note the units: bytes, NOT simple ordinal 0, 1, etc.
+    Table entry size.  Is derived from the maximum file name length
+    the user needs, subject to a limit defined here. We add a NULL to
+    stored strings, so that decreases user's max by 1.
+
+    Suggested maxNameLength: up to 15 -> tableEntrySize = 32.
+    Suggested maxNameLength: > 15, up to 47 -> tableEntrySize = 64.
+    Suggested maxNameLength: > 47, up to 111 -> tableEntrySize = 128.
+  */
+  uint32_t tableEntrySize;
+
+  /*
+    TablePtr is the byte index into the table that the next free file
+    will take.  Note the units: bytes, NOT simple ordinal 0, 1, etc.
   */
   uint64_t tablePtr;
 
@@ -155,12 +166,52 @@ typedef struct {
   void* backing;
 } VFSHeader;
 
+/*
+  The logical view of VFSTableEntry, with a file name as last field.
+  Since the actual tableEntrySize is decided at VFS initialization
+  time, based on max file name length needed, the actual VFSTableEntry
+  excludes the name member:
+
 typedef struct {
   uint64_t offset;
   uint64_t length;
-  char path[128-16];	// LOOK: The 128 should be configurable!
-} VFSTableEntry;
+  char path[SOMEMAXNAMELENGTH];
+} VFSTableEntryLogical;
+*/
 
+/*
+  The actual VFSTableEntry description.  Structs on disk will always
+  have a name (null-terminated) following the length.
+
+  If/when we ever need any more fields (creation time?), they would go
+  here.  But in order to still have new code read existing VFSs on disk,
+  wouls need to bump version!
+*/
+typedef struct {
+  uint64_t offset;
+  uint64_t length;
+} VFSTableEntryFixed;
+  
+/*
+  Minimum tableEntrySize is 32, since a 16 byte one could hold 
+  ONLY offset,length and thus would have no room for a name.
+*/
+#define VERNAMFS_MINTABLEENTRYSIZE (32)
+
+#define VERNAMFS_MAXTABLEENTRYSIZE (128)
+
+/*
+  Given max table entry size, have this much room for the file name,
+  given that we have to add a null-terminator to the stored string.
+*/
+#define VERNAMFS_MAXNAMELENGTH \
+  (VERNAMFS_MAXTABLEENTRYSIZE - sizeof( VFSTableEntryFixed ) - 1)
+
+/*
+  As used by the init command, see init.c.  User can also
+  request longer names, up to maxNameLength above
+*/
+#define VERNAMFS_NAMELENGTHDEFAULT (64 - sizeof( VFSTableEntryFixed ) -1)
 
 /*
   Combine the VFSHeader together with its memory-mapped backing store,
@@ -176,7 +227,7 @@ typedef struct {
  * likely due to insufficient space to hold the VFS, given the supplied
  * length
  */
-int VFSInit( VFS* thiz, size_t length, int maxFiles );
+int VFSInit( VFS* thiz, size_t length, int maxFiles, int maxNameLength );
 
 void VFSLoad( VFS* thiz, void* addr );
 
