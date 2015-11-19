@@ -11,12 +11,29 @@ static int vernamfs_getattr(const char *path, struct stat *stbuf ) {
   if( 1 )
 	printf( "%s: %s\n", __FUNCTION__, path );
 
-  if( strcmp( path, "/" ) == 0 )
+  /*
+	If we don't say 'everything except / is a file' then we cannot
+	open any file, even for writing.
+  */
+  if( strcmp( path, "/" ) == 0 ) {
 	stbuf->st_mode = S_IFDIR | 0755;
-  else 
+  } else {
 	stbuf->st_mode = S_IFREG | 0222;
-
+  }
   return 0;
+}
+
+/*
+  Without this, a 'ls mountPoint' returns 'Function not implemented'.
+  I prefer the result to be 'Operation not supported', which we achieve
+  by including this readdir impl.
+*/ 
+static int vernamfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+							off_t offset, struct fuse_file_info *fi) {
+  if( 1 )
+	printf( "%s: %s\n", __FUNCTION__, path );
+
+  return -ENOTSUP;
 }
 
 static int vernamfs_open( const char* path, struct fuse_file_info* fi ) {
@@ -95,6 +112,7 @@ static void vernamfs_destroy(void* env ) {
 
 struct fuse_operations vernamfs_ops = {
   .getattr = vernamfs_getattr,
+  .readdir = vernamfs_readdir,
   .open = vernamfs_open,
   .truncate = vernamfs_truncate,
   .write = vernamfs_write,
