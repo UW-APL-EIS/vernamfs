@@ -29,23 +29,49 @@
  * vault location.
  *
  * The vls result is a printout, to stdout, of all allocated file
- * names with ther associated offset and length within the remote OTP.
+ * names with their associated offset and length within the remote OTP.
+ *
+ * If the raw printout is required (a -r option to vls), the table
+ * entries are printed in raw form, i.e the results of the XOR
+ * operation.  This is useful for demonstration purposes, since it can
+ * be piped to e.g. xxd and compared to the rls result also piped to
+ * xxd.
  *
  * @see rls.c
  */
 
+char* vlsUsage = "vls -r? OTPVAULT rlsResult|STDIN";
+
 int vlsArgs( int argc, char* argv[] ) {
 
-  char* usage = "Usage: vls OTPVAULT rlsResult?";
+  int raw = 0;
+  char* vaultFile = NULL;
+  char* rlsResult = NULL;
+  
+  int c;
+  while( (c = getopt( argc, argv, "r") ) != -1 ) {
+	switch( c ) {
+	case 'r':
+	  raw = 1;
+	  break;
+	default:
+	  break;
+	}
+  }
 
-  if( argc < 1 ) {
-	fprintf( stderr, "%s\n", usage );
+  if( optind < argc ) {
+	vaultFile = argv[optind];
+  } else {
+	fprintf( stderr, "Usage: %s\n", vlsUsage );
 	return -1;
   }
 
-  char* file = argv[0];
-  char* rlsResult = argc > 1 ? argv[1] : NULL;
-  return vlsFile( file, rlsResult );
+  if( optind+1 < argc ) 
+	rlsResult = argv[optind+1];
+
+  // printf( "raw %d, vaultFile %s, rlsResult %p\n", raw, vaultFile,rlsResult );
+
+  return vls( vaultFile, raw, rlsResult );
 }
 
 /*
@@ -54,7 +80,7 @@ int vlsArgs( int argc, char* argv[] ) {
   location.  
 */
 
-int vlsFile( char* vaultFile, char* rlsResult ) {
+int vls( char* vaultFile, int raw, char* rlsResult ) {
 
   struct stat st;
   int sc = stat( vaultFile, &st );
@@ -138,9 +164,16 @@ int vlsFile( char* vaultFile, char* rlsResult ) {
 	VFSTableEntryFixed* tef = (VFSTableEntryFixed*)teActual;
 	char* name = teActual + sizeof( VFSTableEntryFixed );
 
-	// The vls result, just a print out of each file's properties
-	printf( "%s 0x%"PRIx64" 0x%"PRIx64"\n", 
-			name, tef->offset, tef->length );
+	/*
+	  The vls result, just a print out each file's properties,
+	  in either raw form or formatted
+	*/
+	if( raw ) {
+	  write( STDOUT_FILENO, teActual, tableEntrySize ); 
+	} else {
+	  printf( "%s 0x%"PRIx64" 0x%"PRIx64"\n", 
+			  name, tef->offset, tef->length );
+	}
   }
   free( teActual );
 

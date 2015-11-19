@@ -33,23 +33,23 @@
  * @see remote.c
  */
 
+char* vcatUsage = "vcat OTPVAULT rcatResult rlsResult?";
+
 int vcatArgs( int argc, char* argv[] ) {
 
-  char* usage = "Usage: vcat OTPVAULT rcatResult rlsResult?";
-
-  if( argc < 2 ) {
-	fprintf( stderr, "%s\n", usage );
+  if( argc < 3 ) {
+	fprintf( stderr, "%s\n", vcatUsage );
 	return -1;
   }
 
-  char* vaultFile = argv[0];
-  char* rcatResultFile = argv[1];
-  char* rlsResultFile = argc > 2 ? argv[2] : NULL;
+  char* vaultFile = argv[1];
+  char* rcatResultFile = argv[2];
+  char* rlsResultFile = argc > 3 ? argv[3] : NULL;
 
-  return vcatFile( vaultFile, rcatResultFile, rlsResultFile );
+  return vcat( vaultFile, rcatResultFile, rlsResultFile );
 }
 
-int vcatFile( char* vaultFile, char* rcatResultFile, char* rlsResultFile ) {
+int vcat( char* vaultFile, char* rcatResultFile, char* rlsResultFile ) {
 
   struct stat st;
   int sc = stat( vaultFile, &st );

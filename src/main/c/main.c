@@ -101,14 +101,19 @@ int main( int argc, char* argv[] ) {
   char usage[1024];
   sprintf( usage, 
 		   "\nUsage:\n\n"
-		   "%s init  FILE tableSize\n"
-		   "%s info  FILE\n"
-		   "%s mount FILE fuseOptions mountPoint\n"
-		   "%s rls   FILE\n"
-		   "%s vls   FILE (stdin | rls.out)\n"
+		   "%s %s\n"
+		   "%s %s\n"
+		   "%s %s\n"
+		   "%s %s\n"
+		   "%s %s\n"
 		   "%s rcat  FILE offset length (both in hex|decimal)\n"
 		   "%s vcat  FILE rcat.out rls.out?\n",
-		   argv[0], argv[0], argv[0], argv[0], argv[0], argv[0], argv[0] );
+		   argv[0], initUsage,
+		   argv[0], infoUsage,
+		   argv[0], mountUsage,
+		   argv[0], rlsUsage, 
+		   argv[0], vlsUsage, 
+		   argv[0], argv[0] );
   
   if( argc < 2 ) {
 	fprintf( stderr, "%s\n", usage );
@@ -118,17 +123,17 @@ int main( int argc, char* argv[] ) {
   char* cmd = argv[1];
   if( 0 ) {
   } else if( strcmp( cmd, "init" ) == 0 ) {
-	return initArgs( argc-2, argv+2 );
+	return initArgs( argc-1, argv+1 );
   } else if( strcmp( cmd, "info" ) == 0 ) {
-	return infoArgs( argc-2, argv+2 );
+	return infoArgs( argc-1, argv+1 );
   } else if( strcmp( cmd, "rls" ) == 0 ) {
-	return rlsArgs( argc-2, argv+2 );
+	return rlsArgs( argc-1, argv+1 );
   } else if( strcmp( cmd, "vls" ) == 0 ) {
-	return vlsArgs( argc-2, argv+2 );
+	return vlsArgs( argc-1, argv+1 );
   } else if( strcmp( cmd, "rcat" ) == 0 ) {
-	return rcatArgs( argc-2, argv+2 );
+	return rcatArgs( argc-1, argv+1 );
   } else if( strcmp( cmd, "vcat" ) == 0 ) {
-	return vcatArgs( argc-2, argv+2 );
+	return vcatArgs( argc-1, argv+1 );
   } else if( strcmp( cmd, "mount" ) == 0 ) {
 	// NOTE: fuse_main wants to see the REAL argc, argv (??)
 	return mountArgs( argc, argv ); 

@@ -6,18 +6,19 @@
 #include "cmds.h"
 #include "vernamfs.h"
 
-int infoArgs( int argc, char* argv[] ) {
-  char* usage = "Usage: info OTPFILE";
+char* infoUsage = "info OTPFILE";
 
-  if( argc < 1 ) {
-	fprintf( stderr, "%s\n", usage );
+int infoArgs( int argc, char* argv[] ) {
+
+  if( argc < 2 ) {
+	fprintf( stderr, "Usage: %s\n", infoUsage );
 	return -1;
   }
 
-  return infoFile( argv[0] );
+  return info( argv[1] );
 }
 
-int infoFile( char* file ) {
+int info( char* file ) {
 
   struct stat st;
   int sc = stat( file, &st );

@@ -12,17 +12,17 @@
 #include "cmds.h"
 #include "vernamfs.h"
 
+char* mountUsage = "mount OTPREMOTE fuseOption* mountPoint";
+
 // argc, argv straight from main, NOT shifted, since fuse_main needs argv[0] ?
 int mountArgs( int argc, char* argv[] ) {
-
-  char* usage = "Usage: mount OTPREMOTE fuseOption* mountPoint";
 
   /*
 	Must be 4+, since (1) progName, (2) 'mount', (3) our OTP file and 
 	(4) a fuse mount point. 5+ would be any fuseOptions
   */
   if( argc < 4 ) {
-	fprintf( stderr, "%s\n", usage );
+	fprintf( stderr, "Usage: %s\n", mountUsage );
 	return -1;
   }
 

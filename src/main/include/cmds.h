@@ -3,34 +3,45 @@
 
 #include <inttypes.h>
 
+extern char* initUsage;
+extern char* infoUsage;
+extern char* mountUsage;
+extern char* rlsUsage;
+extern char* vlsUsage;
+extern char* rcatUsage;
+extern char* vcatUsage;
+
 int initArgs( int argc, char* argv[] );
 
-int initFile( char* file, int maxFiles, int maxFileNameLength );
+int init( char* file, int maxFiles, int maxFileNameLength, int force );
 
 int infoArgs( int argc, char* argv[] );
 
-int infoFile( char* file );
+int info( char* file );
 
 int mountArgs( int argc, char* argv[] );
 
 int rlsArgs( int argc, char* argv[] );
 
-int rlsFile( char* file );
+int rls( char* file );
 
 int vlsArgs( int argc, char* argv[] );
 
 /*
+ * @param raw - if TRUE, print the actual table as raw, suitable for formatting
+ * by e.g. xxd.  If FALSE, print the table in human-readable form.
+ *
  * @param rlsResultOptional - file with rls content, or NULL for stdin
  */
-int vlsFile( char* file, char* rlsResultOptional );
+int vls( char* file, int raw, char* rlsResultOptional );
 
 int rcatArgs( int argc, char* argv[] );
 
-int rcatFile( char* file, uint64_t offset, uint64_t length );
+int rcat( char* file, uint64_t offset, uint64_t length );
 
 int vcatArgs( int argc, char* argv[] );
 
-int vcatFile( char* file, char* rcatResult, char* rlsResultOptional );
+int vcat( char* file, char* rcatResult, char* rlsResultOptional );
 
 // LOOK: what is a good name for the entire VFS recovery operation??
 int recover( char* remoteOTP, char* vaultOTP );

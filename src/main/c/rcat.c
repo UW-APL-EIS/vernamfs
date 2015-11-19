@@ -44,23 +44,23 @@ static int hexOrDecimal( char* s ) {
   return atoi( s );
 }
 
+char* rcatUsage = "rcat OTPREMOTE offset length";
+
 int rcatArgs( int argc, char* argv[] ) {
 
-  char* usage = "Usage: rcat OTPREMOTE offset length";
-
-  if( argc < 3 ) {
-	fprintf( stderr, "%s\n", usage );
+  if( argc < 4 ) {
+	fprintf( stderr, "Usage: %s\n", rcatUsage );
 	return -1;
   }
 
-  char* file = argv[0];
-  uint64_t offset = hexOrDecimal( argv[1] );
-  uint64_t length = hexOrDecimal( argv[2] );
+  char* file = argv[1];
+  uint64_t offset = hexOrDecimal( argv[2] );
+  uint64_t length = hexOrDecimal( argv[3] );
 
-  return rcatFile( file, offset, length );
+  return rcat( file, offset, length );
 }
 
-int rcatFile( char* file, uint64_t offset, uint64_t length ) {
+int rcat( char* file, uint64_t offset, uint64_t length ) {
 
   struct stat st;
   int sc = stat( file, &st );

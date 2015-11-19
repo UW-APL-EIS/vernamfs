@@ -38,19 +38,19 @@
  * @see vls.c
  */
 
+char* rlsUsage = "rls OTPREMOTE";
+
 int rlsArgs( int argc, char* argv[] ) {
 
-  char* usage = "Usage: rls OTPREMOTE";
-
-  if( argc < 1 ) {
-	fprintf( stderr, "%s\n", usage );
+  if( argc < 2 ) {
+	fprintf( stderr, "Usage: %s\n", rlsUsage );
 	return -1;
   }
 
-  return rlsFile( argv[0] );
+  return rls( argv[1] );
 }
 
-int rlsFile( char* file ) {
+int rls( char* file ) {
 
   struct stat st;
   int sc = stat( file, &st );
