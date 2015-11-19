@@ -20,24 +20,25 @@
  *
  * Example usage:
  *
- * 1: On the 'remote unit': $ vernamfs rls FILE > ls.remote
+ * 1: On the 'remote unit': $ vernamfs rls OTP > ls.remote
  *
  * 2: Transport the ls.remote data to the 'vault location', where we
  * have a copy of the original OTP. 
  *
- * 3: Recover the actual listing: $ vernamfs vls VAULTFILE < ls.remote
+ * 3: Recover the actual listing: $ vernamfs vls VAULTFILE ls.remote
  *
- * 4: From the vls listing, select a suitable offset and length, based
+ * 4: From the vls listing, select a suitable offset O and length L, based
  * on some file name of interest, then rcat that:
-
- * $ On the remote unit: $ vernamfs rcat FILE > cat.remote
+ *
+ * $ On the remote unit: $ vernamfs rcat O F > cat.remote
+ *
+ * rcat accepts the offset and length in either hexadecimal or decimal form.
  *
  * @see vcat.c
  */
 
 static int hexOrDecimal( char* s ) {
-  if( strlen( s ) >= 2 && s[0] == '0' &&
-	  (s[1] == 'X' || s[1] == 'x' ) ) {
+  if( strlen( s ) >= 2 && s[0] == '0' && (s[1] == 'X' || s[1] == 'x' ) ) {
 	return strtol( s, NULL, 16 );
   }
   return atoi( s );
@@ -96,9 +97,9 @@ int rcatFile( char* file, uint64_t offset, uint64_t length ) {
   VFSRemoteResult vrr;
   vrr.offset = offset;
   vrr.length = length;
-  vrr.data = addr + offset;
+  vrr.data   = addr + offset;
 
-  // set this for completeness, we are NOT calling RemoteResultFree anyway
+  // Set this for completeness, we are NOT calling RemoteResultFree anyway
   vrr.dataOnHeap = 0;
 
   VFSRemoteResultWrite( &vrr, STDOUT_FILENO );
