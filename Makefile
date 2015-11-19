@@ -34,7 +34,8 @@ default: $(BINARIES)
 test: $(TESTS)
 
 vernamfs: main.o vernamfs.o fuse.o mount.o init.o info.o \
-	remote.o rls.o vls.o rcat.o vcat.o
+	remote.o rls.o vls.o rcat.o vcat.o \
+	generate.o aes128.o
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
 $(TESTS) $(TOOLS): % : %.o

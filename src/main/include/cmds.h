@@ -10,6 +10,7 @@ extern char* rlsUsage;
 extern char* vlsUsage;
 extern char* rcatUsage;
 extern char* vcatUsage;
+extern char* generateUsage;
 
 int initArgs( int argc, char* argv[] );
 
@@ -42,6 +43,11 @@ int rcat( char* file, uint64_t offset, uint64_t length );
 int vcatArgs( int argc, char* argv[] );
 
 int vcat( char* file, char* rcatResult, char* rlsResultOptional );
+
+int generateArgs( int argc, char* argv[] );
+
+// Using aes/ctr mode with a 128-bit key to generate OTP
+int generate128( char key[], int log2OTPSize );
 
 // LOOK: what is a good name for the entire VFS recovery operation??
 int recover( char* remoteOTP, char* vaultOTP );

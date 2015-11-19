@@ -107,6 +107,7 @@ int main( int argc, char* argv[] ) {
 		   "%s %s\n\n"
 		   "%s %s\n\n"
 		   "%s %s\n\n"
+		   "%s %s\n\n"
 		   "%s %s\n\n",
 		   argv[0],
 		   argv[0], initUsage,
@@ -115,7 +116,9 @@ int main( int argc, char* argv[] ) {
 		   argv[0], rlsUsage, 
 		   argv[0], vlsUsage, 
 		   argv[0], rcatUsage,
-		   argv[0], vcatUsage );
+		   argv[0], vcatUsage,
+		   argv[0], generateUsage
+		   );
   
   if( argc < 2 ) {
 	fprintf( stderr, "%s\n", usage );
@@ -139,6 +142,8 @@ int main( int argc, char* argv[] ) {
   } else if( strcmp( cmd, "mount" ) == 0 ) {
 	// NOTE: fuse_main wants to see the REAL argc, argv (??)
 	return mountArgs( argc, argv ); 
+  } else if( strcmp( cmd, "generate" ) == 0 ) {
+	return generateArgs( argc-1, argv+1 );
   } else {
 	fprintf( stderr, "%s: Unknown command\n", cmd );
 	fprintf( stderr, "%s\n", usage );
