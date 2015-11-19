@@ -100,20 +100,22 @@ int main( int argc, char* argv[] ) {
 
   char usage[1024];
   sprintf( usage, 
-		   "\nUsage:\n\n"
-		   "%s %s\n"
-		   "%s %s\n"
-		   "%s %s\n"
-		   "%s %s\n"
-		   "%s %s\n"
-		   "%s rcat  FILE offset length (both in hex|decimal)\n"
-		   "%s vcat  FILE rcat.out rls.out?\n",
+		   "\nUsage: %s command commandOptions commandArgs\n\n"
+		   "%s %s\n\n"
+		   "%s %s\n\n"
+		   "%s %s\n\n"
+		   "%s %s\n\n"
+		   "%s %s\n\n"
+		   "%s %s\n\n"
+		   "%s %s\n\n",
+		   argv[0],
 		   argv[0], initUsage,
 		   argv[0], infoUsage,
 		   argv[0], mountUsage,
 		   argv[0], rlsUsage, 
 		   argv[0], vlsUsage, 
-		   argv[0], argv[0] );
+		   argv[0], rcatUsage,
+		   argv[0], vcatUsage );
   
   if( argc < 2 ) {
 	fprintf( stderr, "%s\n", usage );
