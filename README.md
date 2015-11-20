@@ -1,58 +1,78 @@
-# VernamFS - A secure filesystem based on one-time-pads.
+# VernamFS - A secure filesystem based on one-time pads.
 
 ## Introduction
 
-VernamFS is a FUSE-based filesystem for storing data securely.  It is
-suited to remote deployment of systems ('sensors') that collect/store
-data that should not be readable by others.  It uses a one-time-pad
-(OTP) file (or whole device) for its persistent storage.  Sections of
-the pad are used up as data is written to it.
+The Vernam Filesystem (VernamFS) is a FUSE-based filesystem for
+storing data securely.  It is suited to remote deployment of systems
+('sensors') that collect/store data that should not be readable by
+others.  It uses a one-time pad (OTP) file, or whole device, for its
+persistent storage.  The pad is used up as data is written to it.
 
 The basic idea is that you create two identical copies of a OTP.  One
-copy goes into the field (we use the term 'remote unit') to hold
-secure data.  The other copy goes in a 'vault'.  After the remote unit
-is recovered, its OTP is combined with the vault copy to recover the
-stored data.
+copy goes into the field (we use the term *remote unit*) to hold files
+which can be written but not read.  The other copy goes in a *vault*.
+After the remote unit is recovered, its OTP is combined with the vault
+copy to recover the remote data.
 
-In the field, the VernamFS is a write-only filesystem.  Data written
-to it is unreadable, even by the VernamFS code itself!  The only
-'information leaks' are knowledge of allocated file counts and
-percentage of the OTP used.  No information is leaked about file
-content, nor even file size nor even file name.
+The VernamFS is a write-only filesystem.  Data written to it is
+unreadable, even by the VernamFS code itself!  The only information
+leaked by the filesystem is knowledge of allocated file counts and
+percentage of the remote OTP used.  No information is leaked about
+file content, nor even file sizes (!) nor even file names (!!).
 
-Due to the simple binary-XOR operation at the center of everything in
-the OTP domain, the VernamFS is also very cheap in terms of CPU
-cycles.  It is much cheaper than traditional encrypting techniques
-like AES, etc.  It also needs no keys stored on the remote unit, nor
-is reliant on the quality (or lack thereof!) of any RNG on the remote
-unit.
+Due to the simple bitwise-XOR operation at the center of everything in
+the OTP domain, the VernamFS is also very cheap in terms of CPU cycles
+and thus power consumption.  It is much cheaper than traditional disk
+encrypting techniques, which typically use block ciphers such as AES.
+Further, it needs no cryptographic keys, so the key distribution
+problem is moot.  Finally, it is not reliant on the quality (or lack
+thereof!) of any random number generator (RNG). It needs only
+bitwise-XOR.
+
 
 ## Prerequisites
 
-VernamFS is standard Unix/C code with a Makefile.  It has so far been
-built and tested on both Debian and Fedora variants of Linux.  It may build on
-other systems, but is untested.
+VernamFS is standard Unix/C code, packaged with a Makefile. It depends
+upon, and uses, FUSE (Filesystem in Userspace). It has so far been
+built and tested on both Debian and Fedora variants of Linux.
+It may build on other systems (there are FUSE ports for Mac OS, but
+not for Windows), but is untested.  In theory, the OTP logic in
+VernamFS could be separated from the FUSE parts and packaged as an
+standalone API/library. This has not been done to date.
 
-To build on Linux, these tools/libraries are required:
+To build VernamFS on Linux, these tools/libraries are required:
 
-1 GNU make
+1. GNU make
 
-2 gcc
+2. gcc
 
-3 Fuse headers and library.  Check existence of
-/usr/include/fuse.h. If not installed, install fuse development
-package. On Fedora-based systems 'yum install fuse-devel'.  On
-Debian-based systems 'apt-get install libfuse-dev'.
+3. pkg-config, used in the Makefile
 
-4 Useful by not required: the xxd, strings tools for binary data
-inspection.
+4. FUSE header (.h) and library (.a, .so) files
+
+5. Useful by not required: xxd, strings for binary data
+inspection
+
+For FUSE, check existence of /usr/include/fuse.h. If missing, install
+fuse development package. On Fedora-based systems:
+
+```
+$ sudo yum install fuse-devel
+```
+
+On Debian-based systems:
+
+```
+$ sudo apt-get install libfuse-dev
+```
+
 
 ## Build
 
 We have built VernamFS for both x86 and ARM environments.  Most
 likely, you want to try it on your laptop/desktop, a so-called
-'native' environment (code built and run on same
-machine/architecture):
+'native' environment.  The code is built and runs on the same the
+machine/architecture:
 
 ```
 $ cd /path/to/vernamfs/target/native
@@ -61,6 +81,7 @@ $ make
 
 $ vernamfs	(or ./vernamfs if . not in your PATH)
 ```
+
 should produce a short usage/help summary.
 
 As with git, there is just a single binary for VernamFS, namely
@@ -70,40 +91,54 @@ As with git, there is just a single binary for VernamFS, namely
 
 ### OTP Creation
 
-First step is to create a one-time-pad file.  One way is via
-/dev/random or /dev/urandom.  This dd will create a 1MB one-time-pad
-in file OTP:
+First step is to create a one-time pad file.  Traditional Linux way is
+via /dev/random (best, but slowest) or /dev/urandom (inferior, but
+faster).  This dd will create a 1MB one-time pad in file OTP:
 
 ```
 $ dd if=/dev/urandom of=OTP count=2048
 ```
 
-For a larger one-time-pad, using /dev/[u]random could take a looooong
-time. An alternative way, using a 'cryptographic random number
-generator', is available in VernamFS.  It uses the block cipher AES in
-CTR mode to generate a pseudo-random OTP.  It expects a hex-encoded
-key on stdin, and the base2 log of the desired one-time-pad size as
-its argument.  The result is on stdout, so use a redirect to capture
-it to a file/device:
+For a larger one-time pad, using /dev/random in particular could take
+a looooong time.
+
+An alternative method for OTP creation is available within VernamFS
+itself, via the generate subcommand. This uses a cryptographically
+secure pseudo-random number generator (CSPRNG), namely the block
+cipher AES in CTR mode.  The cipher is applied to output 16 bytes as
+many times as is required to produce the desired length of OTP, with
+the CTR incremented at each step. The user just supplies the AES key.
+
+The VernamFS OTP generator expects a hex-encoded key on stdin, and the
+base2 log of the desired one-time pad size as a command argument.  A
+16-byte key is easily obtained by taking the MD5 sum of any text:
 
 ```
 $ echo The cat sat on the mat | md5sum | cut -b 1-32 > KEY
+```
 
-2^20 is 1MB, 2^30 is 1GB
+The result of the generator is written to stdout, so use a redirect to
+capture it to a file/device:
+
+```
+# 2^20 is 1MB, 2^30 is 1GB
 $ vernamfs generate 20 < KEY > OTP
-$ vernamfs generate 20 < KEY > /dev/sdcard
+
+$ cat KEY | vernamfs generate 30 > /dev/sdCard
 ```
 
 ## VernamFS Initialization
 
 All filesystems need some 'boot-sector'-like data structure for
 housekeeping.  In VernamFS, this is a minimal 'header' of about 128
-bytes.  It gets written at start of the OTP.  This header is the ONLY
-area of the OTP which is subsequently read-write.  The remainder of
-the OTP will be write-only.
+bytes.  It is written at the beginning of the OTP.  This header is the _only_
+area of the OTP which is subsequently read-write, and so could leak
+information to an adversary.  The remainder of the OTP will be
+write-only.
 
-We have to decide the maximum number of files we expect to create on
-the OTP, say 1024, at initialization time:
+The init subcommand is used to initialize the OTP.  We have to decide
+the maximum number of files we expect to create on the OTP, say 1024,
+at initialization time:
 
 ```
 $ vernamfs init OTP 1024
@@ -127,38 +162,53 @@ $ cp OTP OTP.V
 $ mv OTP.V /some/safe/place
 ```
 
-The vault copy must NEVER be written, so we might at least also do this:
+The vault copy must _never_ be written, so we might at least also do this:
 
 ```
 $ chmod a-w OTP.V
 ```
 
-Henceforth we shall use 'remote' and 'vault' in the shell prompt
-string to denote where commands are run.
+A truly random OTP and one generated by a CSPRNG (e.g. AES/CTR) method
+actually have different vault storage requirements.  In the truly
+random case, the entire OTP must be stored, since it cannot be
+re-created.  In the CSPRNG case, only the initial key needs
+safe-guarding.  The actual OTP need not be stored at all; it can be
+regenerated at will.
 
-## Runtime Setup
+The initial OTP is then deployed to the remote unit.  Henceforth we
+shall use 'remote' and 'vault' in the shell prompt string to denote
+where commands are run.
 
+## Remote Runtime Setup
 
-We deploy the original OTP into the field, and make it available for
-writing processes.  This uses the magic of FUSE (Filesystem in
-Userspace), making it transparent to the filesystem user:
+With the original OTP now installed in the remote unit, along with the
+vernamfs program, we make the OTP available for writing processes.
+This uses the magic of FUSE, making the VernamFS largely transparent
+to the filesystem user.  The mount subcommand initiates a FUSE daemon
+process:
 
 ```
+# Create a mount point
 remote$ mkdir mnt
-remote$ ./vernamfs mount OTP mnt
+
+# This backgrounds to become a daemon process
+remote$ vernamfs mount OTP mnt
+
+# Check the mount point is available
 remote$ mount
 ```
 
-To see debug, run in the foreground in a dedicated terminal:
+To see debug, run in the foreground, in a dedicated terminal:
 
 ```
-remote$ ./vernamfs mount OTP -f mnt
+remote$ vernamfs mount OTP -f mnt
 ```
 
-## Runtime Use
+## Remote Runtime Use
 
-We can now store data onto our OTP as easy as writing to any other
-location.  This sequence stores data for three files in the VernamFS:
+We can now store data onto our OTP as easily as writing to any other
+location.  This sequence stores data for three files into the
+VernamFS:
 
 ```
 remote$ echo MyData > mnt/File1
@@ -170,10 +220,9 @@ Operations on the VernamFS are of course not limited to existing
 programs (echo,cp,etc).  Any program which uses the open/write/close
 system call sequence can use the VernamFS.
 
-One unfortunate property of the VernamFS, and this is purely down to
-how FUSE and the Linux VFS subsystem work, is that no directories are
-possible under the mountpoint.  We have to make do with a single
-directory:
+One unfortunate property of the VernamFS, due entirely to how FUSE and
+the Linux VFS subsystem work, is that no directories are possible
+under the mountpoint.  We have to make do with a single directory:
 
 ``` 
 remote$ mkdir mnt/someDir 
@@ -184,16 +233,17 @@ is the rather confusing response from a mkdir attempt.  If directories
 were allowed, the filesystem would have to be able to distinguish
 between names that denoted regular files and names that denoted
 directories.  This in turn implies that the filesystem can remember
-names. It cannot. They are encrypted when written to disk!
+names. It cannot. They are XOR-encrypted when written to disk, just
+like the file content.
 
-VernamFS isn't really a filesystem at all, nor does it even really
-deal in 'files'.  It's more a list of elements E where E is a pair: a
-string S which resembles a file path and some content (a byte
-sequence) C associated with S.  Elements can be added, but never
-removed.  Moreover, elements cannot be listed (the unlistable list!)
--- we cannot print any S.  Nor can we read any C.  There are no
-owners, groups, permissions, creation times.  S and C is all there is
-for any given file.
+VernamFS isn't really a filesystem at all.  It doesn't really deal in
+'files' as we know them.  Instead, a VernamFS is more a list of
+elements E where each E is a pair: a name string S which resembles a
+file path and some content (a byte sequence) C associated with S.
+Elements can be added, but never removed.  Moreover, elements cannot
+be listed (an unlistable list!), so we cannot print any name S.  Nor
+can we read any C.  There are no owners, groups, permissions, creation
+times, etc.  S and C is all there is for any given 'file'.
 
 The filesystem is truly write-only:
 
@@ -204,41 +254,48 @@ remote$ cat mnt/File1
 Operation not supported
 ```
 
-## Shutdown
+## Remote Shutdown
 
 The VernamFS mountpoint is closed down like any other FUSE-based filesystem:
 
 ```
 remote$ fusermount -u mnt
+
+# Check the mount point is now unavailable
 remote$ mount
 ```
 
-## Analysis
+which is likely performed during system shutdown. The unmount will
+cause the VernamFS daemon to exit.
 
-Of course, it is trivial to simply 'side-step' the VernamFS (which
-just controls the mountpoint) and inspect the OTP itself:
+## Remote Analysis
+
+Of course, it is trivial to simply side-step the VernamFS (which just
+controls the mountpoint) and inspect the backing store OTP file
+itself:
 
 ```
 remote$ xxd -l 128 OTP
 ```
 
-will reveal the VernamFS header.  It has a magic number at offset 0.
-At specific offsets are two cursors pointing to (1) the next free file
-in the 'file allocation table' and (2) the next free data chunk, but
-that's about it.
+will reveal the VernamFS header.  It still has the magic number at
+offset 0 installed by the init subcommand.  At specific offsets are
+two cursors pointing to (1) the next free file in the 'file allocation
+table' and (2) the next free data chunk.  You could monitor them
+changing as files are written to the VernamFS. 
 
 Once past the header however, nothing about any of the write
 operations above (echo, cp, seq) is locatable, neither by file name:
 
 ```
-# This would locate file name 'File1', the target of the echo command
+# We know we wrote to 'File1', the target of the echo command
 remote$ strings OTP | grep File1
 ```
 
 nor by file content:
 
 ```
-# This would locate content '1000', produced by the seq command
+# We know we wrote the content '1000', produced by the seq command
 remote$ strings OTP | grep 1000
 ```
 
@@ -249,19 +306,22 @@ We have seen above that the VernamFS can be written to but never read.
 Thus data in the field is completely unintelligible to anyone gaining
 access to the remote unit.
 
-Once the field unit, with its OTP, is recovered, it is simply combined
-with the vault copy and the original stored data produced.  This is
-essentially one large XOR operation over the entire (used portion) of
-the OTP.  We supply a directory to dump all the newly-created files:
+Once the field unit, with its OTP, is recovered and transported back
+to vault location, it is simply combined with the vault copy and the
+original stored data recovered.  This is essentially one large XOR
+operation over the entire (used portion) of the OTPs.  The VernamFS
+recover subcommand handles this operation.  We supply a directory to
+hold all the newly-created files:
 
 ```
-vault$ copy remote pad OTP to here
+vault$ ship remote OTP to here
 vault$ mv /some/safe/place/OTP.V .
 vault$ mkdir data
-vault$ ./vernamfs recover OTP OTP.V data  (NOT DONE YET)
+vault$ vernamfs recover OTP OTP.V data  (NOT DONE YET)
 ```
 
-As per the requirements of any OTP, we can NEVER re-use the pads:
+As per the requirements of any OTP, we can _never_ re-use the pad data.
+After the recovery is complete:
 
 ```
 vault$ rm OTP OTP.V
@@ -270,12 +330,12 @@ vault$ rm OTP OTP.V
 ## In-Mission Recovery
 
 In some cases, it might be possible to query the remote unit during
-deployment.  If so, it is likely possible to send back portions of the
-remote data to the local vault location, before final recovery.
-Obviously the data stored on the remote unit OTP is encrypted.  So we
-cannot understand it, but if we can read it, and can ship it back to
-the vault location, we can apply the recover operation above to
-selected parts of the OTPs only.
+deployment, i.e. before final recovery.  If so, it is likely also
+possible to send back portions of the remote data to the local vault
+location.  Obviously the data stored on the remote unit OTP is
+encrypted.  We cannot understand it, but if we can access it, and can
+ship it back to the vault location, we can apply the recover operation
+above to selected parts of the OTPs only.
 
 ### File Listing
 
@@ -294,8 +354,8 @@ which produces a binary blob.  Can at least inspect it using xxd:
 remote$ vernamfs rls OTP | xxd
 ```
 
-The rls result is actually saved to a file and then shipped back to
-the vault location:
+The rls result would then be saved to a file and shipped back to the
+vault location:
 
 ```
 # The temp file name used is arbitrary
@@ -314,10 +374,10 @@ same location in the pad, thus overwriting the original byte value.
 
 However, combined with the vault (read-only!) copy of the original
 OTP, the listing is deciphered. The vls (vault ls) subcommand is used.
-We supply the rls result as a file:
+We supply the rls result as a file argument:
 
 ```
-vault $ vernamfs vls OTP.V rls.result
+vault$ vernamfs vls OTP.V rls.result
 
 /File1 0x2000 0x4
 /File2 0x3000 0x0
@@ -325,11 +385,13 @@ vault $ vernamfs vls OTP.V rls.result
 ```
 
 The original file names, together with content offsets and lengths,
-are produced!
+are produced on stdout.  The result above says that File1 is 4 bytes in
+length, and sits 8192 (0x2000) bytes into the remote OTP.
 
-For lab testing, where remote and vault locations can in fact be the
-same directory on a single host, vls can also accept the rls result on
-stdin.  Then either a Unix pipe or file redirect can be used:
+To aid in-lab testing, where remote and vault locations can in fact be
+the same directory on a single host, vls can also accept the rls
+result on stdin.  Then either a Unix pipe or file redirect can be
+used:
 
 ```
 lab$ vernamfs rls OTP | vernamfs vls OTP.V
@@ -346,26 +408,34 @@ together with xxd:
 ```
 lab$ vernamfs rls OTP | vernamfs vls -r OTP.V | xxd
 ```
-The true file meta data is clearly identifiable in the listing. 
 
+The true file meta data is clearly identifiable in the
+listing. Contrast this with the earlier remote-only result:
+
+```
+lab$ vernamfs rls OTP | xxd
+```
 
 ### File Content
 
-The vls result is then inspected for file names of interest.  The
-offset and length of relevant files are fed into rcat (remote cat),
-currently one at a time.  The rcat subcommand retrieves the
+The vls result is inspected for file names of interest.  The offset
+and length of relevant files are then fed into rcat (remote cat),
+currently one at a time.  The VernamFS rcat subcommand retrieves the
 still-enciphered remote data at the correct location in the remote
-OTP.  This example extracts the content, still encrypted, of File1:
+OTP.  We are accessing the remote content by offset, which is
+possible, rather than by name, which is not.
+
+This example extracts the content, still encrypted, of File1:
 
 ```
-# Transcribe the offset and length values from vls to here
+# Transcribe the offset, length values for File1 from vls to here
 remote$ vernamfs rcat OTP 0x2000 4 | xxd
 ```
 
 The xxd listing shows the still-enciphered content of File1.
 
-The rcat output is in fact stored to a file, then shipped to the vault
-location:
+In practice, the rcat output is stored to a file, which is then
+shipped back to the vault location:
 
 ```
 # The temp file name used is arbitrary
@@ -373,13 +443,12 @@ remote$ vernamfs rcat OTP 0x2000 4 > rcat.0x2000.4
 
 remote$ ship rcat.0x2000.4 to vault
 
-# Delete the temp file so as to not leak offset,length info
-remote$ rm/scrub rcat.0x2000.4  
-
+# Delete the temp file so as to not leak any offset,length info
+remote$ rm/scrub rcat.0x2000.4
 ```
 
 The final step is to XOR this blob with the vault OTP at the matching
-location.  The vcat (vault cat) subcommand is used:
+location.  The vcat (vault cat) subcommand is used for this:
 
 ```
 vault$ vernamfs vcat OTP.V rcat.0x2000.4
@@ -391,7 +460,28 @@ local name matching that in the vls listing:
 ```
 vault$ vernamfs vcat OTP.V rcat.0x2000.4 > File1
 ```
+
+If the rls result is still available, it can automate the saving of
+the recovered data to a file whose name matches that on the remote
+unit.  It is passed as an optional third argument to vls:
+
+```
+vault$ vernamfs vcat OTP.V rcat.0x2000.4 rls.result
+```
+
+will create and populate ./File1.
  
+## How It Works
+
+VernamFS uses a file or whole device which starts life as a one-time
+pad, i.e a stream of random bytes.  VernamFS imposes a basic structure
+on that file: a header, a file metadata area, and a content area.
+
+For every file allocation and file content write, the following
+happens.
+
+TO FINISH
+
 ## Concerns
 
 On SD cards (and other persistent storage device types), is there any
@@ -400,11 +490,16 @@ result C of B with data byte D??  If yes, then having C and B reveals
 D!
 
 
-# Acknowledgments
+# Acknowledgments, References, Links
 
 VernamFS named after Gilbert Vernam, a pioneer in the field of data
 security and one-time-pads.
 
+* https://en.wikipedia.org/wiki/Pseudorandom_number_generator
+
+* https://en.wikipedia.org/wiki/Gilbert_Vernam
+
+* http://fuse.sourceforge.net/
 
 Stuart Maclean
 mailto:stuart@apl.washington.edu
