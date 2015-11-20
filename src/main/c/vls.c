@@ -12,6 +12,8 @@
 #include "remote.h"
 
 /**
+ * @author Stuart Maclean
+ *
  * The 'remote' rls listing expected as a file, or on STDIN.  It is of
  * course unintelligible since it is still XOR'ed with the OTP.
  *

@@ -108,16 +108,18 @@ int main( int argc, char* argv[] ) {
 		   "%s %s\n\n"
 		   "%s %s\n\n"
 		   "%s %s\n\n"
-		   "%s %s\n\n",
+		   "%s %s\n\n"
+		   "%s %s\n",
 		   argv[0],
+		   argv[0], generateUsage,
 		   argv[0], initUsage,
 		   argv[0], infoUsage,
 		   argv[0], mountUsage,
+		   argv[0], recoverUsage,
 		   argv[0], rlsUsage, 
 		   argv[0], vlsUsage, 
 		   argv[0], rcatUsage,
-		   argv[0], vcatUsage,
-		   argv[0], generateUsage
+		   argv[0], vcatUsage
 		   );
   
   if( argc < 2 ) {
@@ -127,10 +129,17 @@ int main( int argc, char* argv[] ) {
 
   char* cmd = argv[1];
   if( 0 ) {
+  } else if( strcmp( cmd, "generate" ) == 0 ) {
+	return generateArgs( argc-1, argv+1 );
   } else if( strcmp( cmd, "init" ) == 0 ) {
 	return initArgs( argc-1, argv+1 );
   } else if( strcmp( cmd, "info" ) == 0 ) {
 	return infoArgs( argc-1, argv+1 );
+  } else if( strcmp( cmd, "mount" ) == 0 ) {
+	// NOTE: fuse_main wants to see the REAL argc, argv (??)
+	return mountArgs( argc, argv ); 
+  } else if( strcmp( cmd, "recover" ) == 0 ) {
+	return recoverArgs( argc-1, argv+1 );
   } else if( strcmp( cmd, "rls" ) == 0 ) {
 	return rlsArgs( argc-1, argv+1 );
   } else if( strcmp( cmd, "vls" ) == 0 ) {
@@ -139,11 +148,6 @@ int main( int argc, char* argv[] ) {
 	return rcatArgs( argc-1, argv+1 );
   } else if( strcmp( cmd, "vcat" ) == 0 ) {
 	return vcatArgs( argc-1, argv+1 );
-  } else if( strcmp( cmd, "mount" ) == 0 ) {
-	// NOTE: fuse_main wants to see the REAL argc, argv (??)
-	return mountArgs( argc, argv ); 
-  } else if( strcmp( cmd, "generate" ) == 0 ) {
-	return generateArgs( argc-1, argv+1 );
   } else {
 	fprintf( stderr, "%s: Unknown command\n", cmd );
 	fprintf( stderr, "%s\n", usage );

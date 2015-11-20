@@ -11,6 +11,7 @@ extern char* vlsUsage;
 extern char* rcatUsage;
 extern char* vcatUsage;
 extern char* generateUsage;
+extern char* recoverUsage;
 
 int initArgs( int argc, char* argv[] );
 
@@ -50,6 +51,9 @@ int generateArgs( int argc, char* argv[] );
 int generate128( char key[], int log2OTPSize );
 
 // LOOK: what is a good name for the entire VFS recovery operation??
-int recover( char* remoteOTP, char* vaultOTP );
+
+int recoverArgs( int argc, char* argv[] );
+
+int recover( char* remoteOTP, char* vaultOTP, char* outputDir );
 
 #endif
