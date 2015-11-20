@@ -108,20 +108,31 @@ secure pseudo-random number generator (CSPRNG), namely the block
 cipher AES in CTR mode.  The cipher is applied to output 16 bytes as
 many times as is required to produce the desired length of OTP, with
 the CTR incremented at each step. The user just supplies the AES key.
+A canned one, of all zeros, is also available for testing.
 
-The VernamFS OTP generator expects a hex-encoded key on stdin, and the
-base2 log of the desired one-time pad size as a command argument.  A
-16-byte key is easily obtained by taking the MD5 sum of any text:
+The generate subcommand must also be fed the desired one-time pad
+size.  We do this by supplying the base2 log of that size as a command
+argument.  Here's how to generate a 1MB (2^20) OTP using the all-zeros
+test key.  The result of the generator is written to stdout, so use a
+redirect to capture it to a file/device:
+
+```
+$ vernamfs generate -z 20 > OTP
+
+$ vernamfs generate -z 30 > /dev/sdCard
+```
+
+In the case of a real, user-derived key, the generator expects a
+hex-encoded key on stdin. A 16-byte key is easily obtained by taking
+the MD5 sum of any text:
 
 ```
 $ echo The cat sat on the mat | md5sum | cut -b 1-32 > KEY
 ```
 
-The result of the generator is written to stdout, so use a redirect to
-capture it to a file/device:
+and that key fed to the generator via pipe or redirect:
 
 ```
-# 2^20 is 1MB, 2^30 is 1GB
 $ vernamfs generate 20 < KEY > OTP
 
 $ cat KEY | vernamfs generate 30 > /dev/sdCard

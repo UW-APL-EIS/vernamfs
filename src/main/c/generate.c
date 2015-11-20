@@ -69,45 +69,70 @@
  */
 static int hexDecode( uint8_t* encoded, int len, uint8_t* result );
 
-char* generateUsage = "generate log2OTPSize";
+char* generateUsage = "generate -z? log2OTPSize";
 
 /**
  * The aes key expected in hex-encoded form on STDIN.  If a trailing
- * newline character (\n) is found, it is removed.
+ * newline character (\n) is found, it is removed.  If the -z option
+ * is given, no user key is required, and a zeroed key (N bits all
+ * zero) is used, useful in testing.
  *
- * The log2 of the desired OTP length expected as sole command
- * argument.  So 20 produces a 1MB stream, 30 produces a 1GB stream,
- * etc.
+ * The log2 of the desired OTP length expected as sole mandatory
+ * command argument.  So 20 produces a 1MB stream, 30 produces a 1GB
+ * stream, etc.
  */
 
 int generateArgs( int argc, char* argv[] ) {
 
-  if( argc < 2 ) {
+  int log2OTPSize = 0;
+
+  uint8_t userKey[32] = { 0 };
+  uint8_t zeroKey[32] = { 0 };
+
+  int keyLen = 0;
+  uint8_t* key = NULL;
+
+  int c;
+  while( (c = getopt( argc, argv, "z") ) != -1 ) {
+	switch( c ) {
+	case 'z':
+	  key = zeroKey;
+	  keyLen = 16;
+	  break;
+	default:
+	  break;
+	}
+  }
+
+  if( optind+1 > argc ) {
 	fprintf( stderr, "Usage: %s\n", generateUsage );
 	return -1;
   }
 
-  int log2OTPSize = atoi( argv[1] );
+  log2OTPSize = atoi( argv[optind] );
   if( log2OTPSize < 4 || log2OTPSize > 40 ) {
 	fprintf( stderr, "%s: Size out-of-bounds: 4 <= size <= 40\n", argv[0] );
 	return -1;
   }
-
-  uint8_t keyHex[128];
-  int nin = read( STDIN_FILENO, keyHex, 128 );
-  if( nin < 32 ) {
-	fprintf( stderr, 
-			 "%s: Hexed key (length %d) too short. Need 32/64 hex digits.\n", 
-			 argv[0], nin );
-	return -1;
-  }
   
-  // Crude but effective way to strip whitespace!
-  if( keyHex[nin-1] == '\n' )
-	nin--;
+  if( !key ) {
+	uint8_t keyHex[128];
+	int nin = read( STDIN_FILENO, keyHex, 128 );
+	if( nin < 32 ) {
+	  fprintf( stderr, 
+			   "%s: Hexed key (length %d) too short. Need 32/64 hex digits.\n", 
+			   argv[0], nin );
+	  return -1;
+	}
+	
+	// Crude but effective way to strip whitespace!
+	if( keyHex[nin-1] == '\n' )
+	  nin--;
+	
+	keyLen = hexDecode( (uint8_t*)keyHex, nin, userKey );
+	key = userKey;
+  }
 
-  uint8_t key[32];
-  int keyLen = hexDecode( keyHex, nin, key );
   switch( keyLen ) {
 
   case 16:

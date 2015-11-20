@@ -4,15 +4,24 @@ MAJOR_VERSION = 1
 MINOR_VERSION = 0
 PATCH_VERSION = 0
 
+VERSION = $(MAJOR_VERSION).$(MINOR_VERSION).$(PATCH_VERSION)
+
 BINARIES = vernamfs
 
 TESTS = base64Tests numParseTests deviceSizeTest
 
 TOOLS = headerInfo
 
-VPATH = $(BASEDIR)/src/main/c
+MAINSRCDIR = $(BASEDIR)/src/main/c
 
-VPATH += $(BASEDIR)/src/test/c
+# Exclude from the srcs list any Emacs tmp files starting '#'
+MAINSRCS = $(shell cd $(MAINSRCDIR) && ls *.c)
+
+MAINOBJS = $(MAINSRCS:.c=.o)
+
+TESTSRCDIR = $(BASEDIR)/src/test/c
+
+VPATH = $(MAINSRCDIR) $(TESTSRCDIR)
 
 CPPFLAGS += -D_FILE_OFFSET_BITS=64
 
@@ -33,9 +42,7 @@ default: $(BINARIES)
 
 test: $(TESTS)
 
-vernamfs: main.o vernamfs.o fuse.o mount.o init.o info.o \
-	remote.o rls.o vls.o rcat.o vcat.o recover.o \
-	generate.o aes128.o
+vernamfs: $(MAINOBJS)
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
 $(TESTS) $(TOOLS): % : %.o
@@ -49,11 +56,14 @@ $(BASEDIR)/src/main/include/version.h : $(BASEDIR)/Makefile
 	@echo "#define PATCH_VERSION" $(PATCH_VERSION) \
 	| tee -a $(BASEDIR)/src/main/include/version.h
 
-.PHONY: ver.h
-ver.h : $(BASEDIR)/src/main/include/version.h
-
 .PHONY: clean
 clean:
 	rm $(BINARIES) $(TESTS) *.o
+
+.PHONY: zip
+zip:
+	git archive -o vernamfs-$(VERSION).zip --prefix vernamfs/ HEAD
+
+vernamfs.o : vernamfs.c $(BASEDIR)/src/main/include/version.h
 
 # eof
