@@ -1,5 +1,42 @@
-BASEDIR ?= $(abspath .)
+# VernamFS uses Fuse (Filesystem in Userspace). You need the Fuse
+# Development headers installed for VernamFS to build.  Essentially,
+# you need a 'fuse.h'.  Likely it's at /usr/include/fuse.h.  If the
+# build fails like this:
+#
+# No package 'fuse' found
+# /path/to/vernamfs/src/main/c/fuse.c:6:18: fatal error: fuse.h: No such file or# directory
+# #include <fuse.h>
+#                  ^
+# then install the fuse development library, as easy as:
+#
+# On Debian 8: # apt-get install libfuse-dev
+#
+# On Ubuntu:   # apt-get install libfuse-dev
+#
+#
+# IMPORTANT!!  In developing VernamFS, our goal was for it run on both
+# x86/amd64 (Intel workstations/laptops) AND on Arm processors.  We
+# thus split the make procedure into 'targets'.  Each target is
+# contained in its own subdirectory.  Currently there are 2 target
+# platforms:
+#
+# ./target/native
+# ./target/arm-linux
+#
+# Most likely you want to build VernamFS in order to run it on the
+# same platform you build on. We call that a native build, so do this:
 
+# cd target/native
+# make
+
+# Do NOT invoke make from this directory (the one containing the
+# Makefile you are reading).  You will get the error below.
+
+ifndef BASEDIR
+$(error Likely you are running make from where the main Makefile lives.  cd into target/native and run make from there)
+endif
+
+# There are sub-Makefiles in each target directory which DO define BASEDIR
 MAJOR_VERSION = 1
 MINOR_VERSION = 0
 PATCH_VERSION = 0

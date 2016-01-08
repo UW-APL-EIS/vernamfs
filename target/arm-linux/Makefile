@@ -1,3 +1,7 @@
+# APL/UW has libfuse cross-compiled for Arm, installed under our local
+# 'maken' build infrastructure.  This build is thus highly-specific to
+# APL/UW.  You probably want to be in ../native.
+
 CC = arm-linux-gcc
 
 MAKEN_HOME = $(HOME)/.maken/repository
