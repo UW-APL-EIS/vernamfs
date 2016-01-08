@@ -185,7 +185,7 @@ typedef struct {
 
   If/when we ever need any more fields (creation time?), they would go
   here.  But in order to still have new code read existing VFSs on disk,
-  wouls need to bump version!
+  would need to bump version!
 */
 typedef struct {
   uint64_t offset;
