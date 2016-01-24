@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <fuse.h>
@@ -96,6 +97,7 @@
 
 VFS Global;
 
+
 int main( int argc, char* argv[] ) {
 
   char usage[1024];
@@ -109,8 +111,10 @@ int main( int argc, char* argv[] ) {
 		   "%s %s\n\n"
 		   "%s %s\n\n"
 		   "%s %s\n\n"
+		   "%s %s\n\n"
 		   "%s %s\n",
 		   argv[0],
+		   argv[0], helpUsage,
 		   argv[0], generateUsage,
 		   argv[0], initUsage,
 		   argv[0], infoUsage,
@@ -129,6 +133,8 @@ int main( int argc, char* argv[] ) {
 
   char* cmd = argv[1];
   if( 0 ) {
+  } else if( strcmp( cmd, "help" ) == 0 ) {
+	return helpArgs( argc-1, argv+1 );
   } else if( strcmp( cmd, "generate" ) == 0 ) {
 	return generateArgs( argc-1, argv+1 );
   } else if( strcmp( cmd, "init" ) == 0 ) {

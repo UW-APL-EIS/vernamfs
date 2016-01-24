@@ -71,6 +71,9 @@ static int hexDecode( uint8_t* encoded, int len, uint8_t* result );
 
 char* generateUsage = "generate -z? log2OTPSize";
 
+char* generateSynopsis = "generate\t\t TODO";
+
+
 /**
  * The aes key expected in hex-encoded form on STDIN.  If a trailing
  * newline character (\n) is found, it is removed.  If the -z option

@@ -3,6 +3,8 @@
 
 #include <inttypes.h>
 
+extern char* helpUsage;
+extern char* generateUsage;
 extern char* initUsage;
 extern char* infoUsage;
 extern char* mountUsage;
@@ -10,8 +12,12 @@ extern char* rlsUsage;
 extern char* vlsUsage;
 extern char* rcatUsage;
 extern char* vcatUsage;
-extern char* generateUsage;
 extern char* recoverUsage;
+
+extern char* generateSynopis;
+
+
+int helpArgs( int argc, char* argv[] );
 
 int initArgs( int argc, char* argv[] );
 

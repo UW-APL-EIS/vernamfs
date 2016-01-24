@@ -14,29 +14,18 @@
 # On Ubuntu:   # apt-get install libfuse-dev
 #
 #
-# IMPORTANT!!  In developing VernamFS, our goal was for it run on both
-# x86/amd64 (Intel workstations/laptops) AND on Arm processors.  We
-# thus split the make procedure into 'targets'.  Each target is
-# contained in its own subdirectory.  Currently there are 2 target
-# platforms:
-#
-# ./target/native
-# ./target/arm-linux
 #
 # Most likely you want to build VernamFS in order to run it on the
 # same platform you build on. We call that a native build, so do this:
 
-# cd target/native
 # make
 
-# Do NOT invoke make from this directory (the one containing the
-# Makefile you are reading).  You will get the error below.
+# We have also builds for other targets, i.e cross-compiles for other
+# platforms, currently just for arm-linux.  See ./arm-linux/Makefile
+# for details.
 
-ifndef BASEDIR
-$(error Likely you are running make from where the main Makefile lives.  cd into target/native and run make from there)
-endif
+BASEDIR ?= $(abspath .)
 
-# There are sub-Makefiles in each target directory which DO define BASEDIR
 MAJOR_VERSION = 1
 MINOR_VERSION = 0
 PATCH_VERSION = 0
@@ -60,11 +49,19 @@ TESTSRCDIR = $(BASEDIR)/src/test/c
 
 VPATH = $(MAINSRCDIR) $(TESTSRCDIR)
 
+CC ?= gcc
+
+CFLAGS += -g
+
+CPPFLAGS ?= `pkg-config --cflags fuse`
+
 CPPFLAGS += -D_FILE_OFFSET_BITS=64
 
-# Use 25 here simply because 2.5.3 is the latest FUSE distro that will
-# build on our target arm-linux platform. On x86, later versions may
-# work.
+LOADLIBES ?= `pkg-config --libs fuse`
+
+# Used version 25 here simply because 2.5.3 is the latest FUSE distro
+# that will build on our target arm-linux platform. On x86, later
+# versions may work.
 CPPFLAGS += -DFUSE_USE_VERSION=25
 
 CPPFLAGS += -I$(BASEDIR)/src/main/include
