@@ -51,7 +51,6 @@ VPATH = $(MAINSRCDIR) $(TESTSRCDIR)
 
 CC ?= gcc
 
-CFLAGS += -g
 
 CPPFLAGS ?= `pkg-config --cflags fuse`
 
@@ -68,9 +67,13 @@ CPPFLAGS += -I$(BASEDIR)/src/main/include
 
 LDLIBS += -lm
 
-CFLAGS = -Wall -Werror 
+CFLAGS ?= -Wall -Werror
+#CFLAGS ?= -std=c99 -Wall
+#CFLAGS = -ansi -Wall
 #CFLAGS += -ansi
-#CFLAGS += -std=c99
+#CFLAGS +=  -std=c99
+
+CFLAGS += -g
 
 default: $(BINARIES)
 

@@ -9,15 +9,16 @@
 #include "cmds.h"
 #include "vernamfs.h"
 
-char* recoverUsage = "recover OTPREMOTE OTPVAULT outputDir";
+char* recoverSynopsis = "OTPREMOTE OTPVAULT outputDir";
+
+char* recoverSummary = "Combine vault and remote OTPs";
 
 int recoverArgs( int argc, char* argv[] ) {
 
   if( argc < 4 ) {
-	fprintf( stderr, "Usage: %s\n", recoverUsage );
+	fprintf( stderr, "Usage: %s\n", recoverSynopsis );
 	return -1;
   }
-
 
   return recover( argv[1], argv[2], argv[3] );
 }

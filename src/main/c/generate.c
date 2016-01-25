@@ -69,9 +69,9 @@
  */
 static int hexDecode( uint8_t* encoded, int len, uint8_t* result );
 
-char* generateUsage = "generate -z? log2OTPSize";
+char* generateSummary = "Generate a one-time pad";
 
-char* generateSynopsis = "generate\t\t TODO";
+char* generateSynopsis = "-z? log2OTPSize";
 
 
 /**
@@ -108,7 +108,7 @@ int generateArgs( int argc, char* argv[] ) {
   }
 
   if( optind+1 > argc ) {
-	fprintf( stderr, "Usage: %s\n", generateUsage );
+	fprintf( stderr, "Usage: %s\n", generateSynopsis );
 	return -1;
   }
 

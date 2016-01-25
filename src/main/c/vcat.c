@@ -33,12 +33,14 @@
  * @see remote.c
  */
 
-char* vcatUsage = "vcat OTPVAULT rcatResult rlsResult?";
+char* vcatSynopsis = "OTPVAULT rcatResult rlsResult?";
+
+char* vcatSummary = "Combine vault OTP with remote cat result";
 
 int vcatArgs( int argc, char* argv[] ) {
 
   if( argc < 3 ) {
-	fprintf( stderr, "%s\n", vcatUsage );
+	fprintf( stderr, "%s\n", vcatSynopsis );
 	return -1;
   }
 

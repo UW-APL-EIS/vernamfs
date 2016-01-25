@@ -9,16 +9,19 @@
  * @author Stuart Maclean
  */
 
-char* helpUsage = "help <command>";
+char* helpSummary = "help <command>";
 
-char* helpSynposis = "help <command>";
+char* helpSynopsis = "help <command>";
 
 int helpArgs( int argc, char* argv[] ) {
 
   if( argc < 2 ) {
-	fprintf( stderr, "%s\n", helpUsage );
+	char usage[1024];
+	commandsSummary( usage );
+	fprintf( stderr, "%s\n", usage );
 	return -1;
   }
+
   return 0;
 }
 

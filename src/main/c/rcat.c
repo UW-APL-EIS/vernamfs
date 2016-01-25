@@ -44,12 +44,14 @@ static int hexOrDecimal( char* s ) {
   return atoi( s );
 }
 
-char* rcatUsage = "rcat OTPREMOTE offset length";
+char* rcatSynopsis = "OTPREMOTE offset length";
+
+char* rcatSummary = "Cat part of a remote OTP";
 
 int rcatArgs( int argc, char* argv[] ) {
 
   if( argc < 4 ) {
-	fprintf( stderr, "Usage: %s\n", rcatUsage );
+	fprintf( stderr, "Usage: %s\n", rcatSynopsis );
 	return -1;
   }
 

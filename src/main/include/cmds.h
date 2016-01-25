@@ -3,19 +3,43 @@
 
 #include <inttypes.h>
 
-extern char* helpUsage;
-extern char* generateUsage;
-extern char* initUsage;
-extern char* infoUsage;
-extern char* mountUsage;
-extern char* rlsUsage;
-extern char* vlsUsage;
-extern char* rcatUsage;
-extern char* vcatUsage;
-extern char* recoverUsage;
+extern char* helpSummary;
+extern char* generateSummary;
+extern char* initSummary;
+extern char* infoSummary;
+extern char* mountSummary;
+extern char* recoverSummary;
+extern char* rlsSummary;
+extern char* vlsSummary;
+extern char* rcatSummary;
+extern char* vcatSummary;
 
-extern char* generateSynopis;
+extern char* helpSynopsis;
+extern char* generateSynopsis;
+extern char* initSynopsis;
+extern char* infoSynopsis;
+extern char* mountSynopsis;
+extern char* recoverSynopsis;
+extern char* rlsSynopsis;
+extern char* vlsSynopsis;
+extern char* rcatSynopsis;
+extern char* vcatSynopsis;
 
+typedef struct {
+  char* name;
+  char* summary;
+  char* synopsis;
+  char* description;
+  char* options;
+  int (*invoke)( int argc, char* argv[] );
+} Command;
+
+extern Command** cmds;
+extern int N;
+
+Command* commandLocate( char* name );
+
+void commandsSummary( char result[] );
 
 int helpArgs( int argc, char* argv[] );
 
@@ -56,8 +80,7 @@ int generateArgs( int argc, char* argv[] );
 // Using aes/ctr mode with a 128-bit key to generate OTP
 int generate128( char key[], int log2OTPSize );
 
-// LOOK: what is a good name for the entire VFS recovery operation??
-
+// LOOK: what is a good/better name for the entire VFS recovery operation??
 int recoverArgs( int argc, char* argv[] );
 
 int recover( char* remoteOTP, char* vaultOTP, char* outputDir );

@@ -29,7 +29,11 @@
  * $ vernamfs init -l 30 -f FILE 1024
  */
 
-char* initUsage = "init -f? (-l maxFileNameLength)? OTPFILE maxFiles";
+char* initSummary = "Initialise a device/file with a VernamFS header";
+
+char* initSynopsis = "-f? (-l maxFileNameLength)? OTPFILE maxFiles";
+
+
 
 int initArgs( int argc, char* argv[] ) {
 
@@ -53,7 +57,7 @@ int initArgs( int argc, char* argv[] ) {
   }
 
   if( optind+2 > argc ) {
-	fprintf( stderr, "Usage: %s\n", initUsage );
+	fprintf( stderr, "Usage: %s\n", initSynopsis );
 	return -1;
   }
   file = argv[optind];

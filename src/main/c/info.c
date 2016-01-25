@@ -6,16 +6,18 @@
 #include "cmds.h"
 #include "vernamfs.h"
 
-char* infoUsage = "info OTPFILE";
+char* infoSummary = "info OTPFILE";
+
+char* infoSynopsis = "OTPFILE";
 
 int infoArgs( int argc, char* argv[] ) {
 
-  if( argc < 2 ) {
-	fprintf( stderr, "Usage: %s\n", infoUsage );
+  if( argc < 3 ) {
+	fprintf( stderr, "Usage: %s\n", infoSummary );
 	return -1;
   }
 
-  return info( argv[1] );
+  return info( argv[2] );
 }
 
 int info( char* file ) {

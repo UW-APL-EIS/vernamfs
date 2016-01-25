@@ -100,63 +100,115 @@ VFS Global;
 
 int main( int argc, char* argv[] ) {
 
-  char usage[1024];
-  sprintf( usage, 
-		   "\nUsage: %s command commandOptions commandArgs\n\n"
-		   "%s %s\n\n"
-		   "%s %s\n\n"
-		   "%s %s\n\n"
-		   "%s %s\n\n"
-		   "%s %s\n\n"
-		   "%s %s\n\n"
-		   "%s %s\n\n"
-		   "%s %s\n\n"
-		   "%s %s\n\n"
-		   "%s %s\n",
-		   argv[0],
-		   argv[0], helpUsage,
-		   argv[0], generateUsage,
-		   argv[0], initUsage,
-		   argv[0], infoUsage,
-		   argv[0], mountUsage,
-		   argv[0], recoverUsage,
-		   argv[0], rlsUsage, 
-		   argv[0], vlsUsage, 
-		   argv[0], rcatUsage,
-		   argv[0], vcatUsage
-		   );
+  cmds = (Command**)calloc( 32, sizeof( Command* ) );
+  N = 0;
+  
+  Command help = {
+	.name = "help",
+	.summary = helpSummary,
+	.synopsis = helpSynopsis,
+	.invoke = helpArgs
+  };
+  cmds[N++] = &help;
+
+  Command generate = {
+	.name = "generate",
+	.summary = generateSummary,
+	.synopsis = generateSynopsis,
+	.invoke = generateArgs
+  };
+  cmds[N++] = &generate;
+
+  Command init = {
+	.name = "init",
+	.summary = initSummary,
+	.synopsis = initSynopsis,
+	.invoke = initArgs
+  };
+  cmds[N++] = &init;
+
+  Command info = {
+	.name = "info",
+	.summary = infoSummary,
+	.synopsis = infoSynopsis,
+	.invoke = infoArgs
+  };
+  cmds[N++] = &info;
+  
+  Command mount = {
+	.name = "mount",
+	.summary = mountSummary,
+	.synopsis = mountSynopsis,
+	.invoke = mountArgs
+  };
+  cmds[N++] = &mount;
+  
+  Command recover = {
+	.name = "recover",
+	.summary = recoverSummary,
+	.synopsis = recoverSynopsis,
+	.invoke = recoverArgs
+  };
+  cmds[N++] = &recover;
+
+  Command rls = {
+	.name = "rls",
+	.summary = rlsSummary,
+	.synopsis = rlsSynopsis,
+	.invoke = rlsArgs
+  };
+  cmds[N++] = &rls;
+
+  Command vls = {
+	.name = "vls",
+	.summary = vlsSummary,
+	.synopsis = vlsSynopsis,
+	.invoke = vlsArgs
+  };
+  cmds[N++] = &vls;
+
+  Command rcat = {
+	.name = "rcat",
+	.summary = rcatSummary,
+	.synopsis = rcatSynopsis,
+	.invoke = rcatArgs
+  };
+  cmds[N++] = &rcat;
+
+  Command vcat = {
+	.name = "vcat",
+	.summary = vcatSummary,
+	.synopsis = vcatSynopsis,
+	.invoke = vcatArgs
+  };
+  cmds[N++] = &vcat;
+  
+  cmds[N] = NULL;
   
   if( argc < 2 ) {
+	char usage[1024];
+	commandsSummary( usage );
 	fprintf( stderr, "%s\n", usage );
 	return -1;
   }
 
-  char* cmd = argv[1];
-  if( 0 ) {
-  } else if( strcmp( cmd, "help" ) == 0 ) {
-	return helpArgs( argc-1, argv+1 );
-  } else if( strcmp( cmd, "generate" ) == 0 ) {
-	return generateArgs( argc-1, argv+1 );
-  } else if( strcmp( cmd, "init" ) == 0 ) {
-	return initArgs( argc-1, argv+1 );
-  } else if( strcmp( cmd, "info" ) == 0 ) {
-	return infoArgs( argc-1, argv+1 );
-  } else if( strcmp( cmd, "mount" ) == 0 ) {
-	// NOTE: fuse_main wants to see the REAL argc, argv (??)
-	return mountArgs( argc, argv ); 
-  } else if( strcmp( cmd, "recover" ) == 0 ) {
-	return recoverArgs( argc-1, argv+1 );
-  } else if( strcmp( cmd, "rls" ) == 0 ) {
-	return rlsArgs( argc-1, argv+1 );
-  } else if( strcmp( cmd, "vls" ) == 0 ) {
-	return vlsArgs( argc-1, argv+1 );
-  } else if( strcmp( cmd, "rcat" ) == 0 ) {
-	return rcatArgs( argc-1, argv+1 );
-  } else if( strcmp( cmd, "vcat" ) == 0 ) {
-	return vcatArgs( argc-1, argv+1 );
+  char* name = argv[1];
+  Command* c = commandLocate( name );
+  if( c ) {
+	if( strcmp( c->name, "mount" ) == 0 ) {
+	  /*
+		NOTE: fuse_main wants to see the REAL argc, argv.  It seems
+		to need/use argv[0], the invoked program name
+	  */
+	  (c->invoke)( argc, argv );
+	} else {
+	  (c->invoke)( argc+1, argv+1 );
+	}
+	return 0;
   } else {
-	fprintf( stderr, "%s: Unknown command\n", cmd );
-	fprintf( stderr, "%s\n", usage );
+	fprintf( stderr, 
+			 "%s: '%s' is not a vernamfs command. See 'vernamfs help'.\n",
+			 argv[0], name );
 	return -1;
   }
 }

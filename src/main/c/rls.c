@@ -38,12 +38,14 @@
  * @see vls.c
  */
 
-char* rlsUsage = "rls OTPREMOTE";
+char* rlsSynopsis = "OTPREMOTE";
+
+char* rlsSummary = "TODO";
 
 int rlsArgs( int argc, char* argv[] ) {
 
   if( argc < 2 ) {
-	fprintf( stderr, "Usage: %s\n", rlsUsage );
+	fprintf( stderr, "Usage: %s\n", rlsSynopsis );
 	return -1;
   }
 

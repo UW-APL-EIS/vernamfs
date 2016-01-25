@@ -42,7 +42,9 @@
  * @see rls.c
  */
 
-char* vlsUsage = "vls -r? OTPVAULT rlsResult|STDIN";
+char* vlsSynopsis = "-r? OTPVAULT rlsResult|STDIN";
+
+char* vlsSummary = "Combine vault OTP with remote ls result";
 
 int vlsArgs( int argc, char* argv[] ) {
 
@@ -64,7 +66,7 @@ int vlsArgs( int argc, char* argv[] ) {
   if( optind < argc ) {
 	vaultFile = argv[optind];
   } else {
-	fprintf( stderr, "Usage: %s\n", vlsUsage );
+	fprintf( stderr, "Usage: %s\n", vlsSynopsis );
 	return -1;
   }
 
