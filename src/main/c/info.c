@@ -6,14 +6,19 @@
 #include "cmds.h"
 #include "vernamfs.h"
 
-char* infoSummary = "info OTPFILE";
+static CommandHelp help = {
+  .summary = "Print info about a VernamFS device/file",
+  .synopsis = "OTPFILE",
+  .description = "INFO DESC",
+  .options = { { NULL, NULL } }
+};
 
-char* infoSynopsis = "OTPFILE";
+CommandHelp* helpInfo = &help;
 
 int infoArgs( int argc, char* argv[] ) {
 
   if( argc < 3 ) {
-	fprintf( stderr, "Usage: %s\n", infoSummary );
+	fprintf( stderr, "Usage: %s\n", help.summary );
 	return -1;
   }
 

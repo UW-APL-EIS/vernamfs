@@ -33,14 +33,19 @@
  * @see remote.c
  */
 
-char* vcatSynopsis = "OTPVAULT rcatResult rlsResult?";
+static CommandHelp help = {
+  .summary = "Combine vault, remote cat sections. Recovers remote file content",
+  .synopsis = "OTPVAULT rcatResult rlsResult?",
+  .description = "vcat desc",
+  .options = { { NULL, NULL } }
+};
 
-char* vcatSummary = "Combine vault OTP with remote cat result";
+CommandHelp* helpVcat = &help;
 
 int vcatArgs( int argc, char* argv[] ) {
 
   if( argc < 3 ) {
-	fprintf( stderr, "%s\n", vcatSynopsis );
+	fprintf( stderr, "%s\n", help.synopsis );
 	return -1;
   }
 

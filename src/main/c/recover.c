@@ -9,14 +9,19 @@
 #include "cmds.h"
 #include "vernamfs.h"
 
-char* recoverSynopsis = "OTPREMOTE OTPVAULT outputDir";
+static CommandHelp help = {
+  .summary = "Combine vault, remote pads. Recovers entire remote data",
+  .synopsis = "OTPREMOTE OTPVAULT outputDir",
+  .description = "recover DESC",
+  .options = { { NULL, NULL } }
+};
 
-char* recoverSummary = "Combine vault and remote OTPs";
+CommandHelp* helpRecover = &help;
 
 int recoverArgs( int argc, char* argv[] ) {
 
   if( argc < 4 ) {
-	fprintf( stderr, "Usage: %s\n", recoverSynopsis );
+	fprintf( stderr, "Usage: %s\n", help.synopsis );
 	return -1;
   }
 

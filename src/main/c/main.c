@@ -105,84 +105,73 @@ int main( int argc, char* argv[] ) {
   
   Command help = {
 	.name = "help",
-	.summary = helpSummary,
-	.synopsis = helpSynopsis,
-	.invoke = helpArgs
   };
   cmds[N++] = &help;
 
   Command generate = {
 	.name = "generate",
-	.summary = generateSummary,
-	.synopsis = generateSynopsis,
+	.help = helpGenerate,
 	.invoke = generateArgs
   };
   cmds[N++] = &generate;
 
   Command init = {
 	.name = "init",
-	.summary = initSummary,
-	.synopsis = initSynopsis,
+	.help = helpInit,
 	.invoke = initArgs
   };
   cmds[N++] = &init;
 
   Command info = {
 	.name = "info",
-	.summary = infoSummary,
-	.synopsis = infoSynopsis,
+	.help = helpInfo,
 	.invoke = infoArgs
   };
   cmds[N++] = &info;
   
   Command mount = {
 	.name = "mount",
-	.summary = mountSummary,
-	.synopsis = mountSynopsis,
+	.help = helpMount,
 	.invoke = mountArgs
   };
   cmds[N++] = &mount;
   
-  Command recover = {
-	.name = "recover",
-	.summary = recoverSummary,
-	.synopsis = recoverSynopsis,
-	.invoke = recoverArgs
-  };
-  cmds[N++] = &recover;
 
   Command rls = {
 	.name = "rls",
-	.summary = rlsSummary,
-	.synopsis = rlsSynopsis,
+	.help = helpRls,
 	.invoke = rlsArgs
   };
   cmds[N++] = &rls;
 
   Command vls = {
 	.name = "vls",
-	.summary = vlsSummary,
-	.synopsis = vlsSynopsis,
+	.help = helpVls,
 	.invoke = vlsArgs
   };
   cmds[N++] = &vls;
 
   Command rcat = {
 	.name = "rcat",
-	.summary = rcatSummary,
-	.synopsis = rcatSynopsis,
+	.help = helpRcat,
 	.invoke = rcatArgs
   };
   cmds[N++] = &rcat;
 
   Command vcat = {
 	.name = "vcat",
-	.summary = vcatSummary,
-	.synopsis = vcatSynopsis,
+	.help = helpVcat,
 	.invoke = vcatArgs
   };
   cmds[N++] = &vcat;
   
+  Command recover = {
+	.name = "recover",
+	.help = helpRecover,
+	.invoke = recoverArgs
+  };
+  cmds[N++] = &recover;
+
   cmds[N] = NULL;
   
   if( argc < 2 ) {
@@ -208,7 +197,7 @@ int main( int argc, char* argv[] ) {
   } else {
 	fprintf( stderr, 
 			 "%s: '%s' is not a vernamfs command. See 'vernamfs help'.\n",
-			 argv[0], name );
+			 ProgramName, name );
 	return -1;
   }
 }

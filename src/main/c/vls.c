@@ -42,9 +42,14 @@
  * @see rls.c
  */
 
-char* vlsSynopsis = "-r? OTPVAULT rlsResult|STDIN";
+static CommandHelp help = {
+  .summary ="Combine vault, remote listings. Recovers remote file metadata",
+  .synopsis = "-r? OTPVAULT rlsResult|STDIN",
+  .description = "vls desc",
+  .options = { { NULL, NULL } }
+};
 
-char* vlsSummary = "Combine vault OTP with remote ls result";
+CommandHelp* helpVls = &help;
 
 int vlsArgs( int argc, char* argv[] ) {
 
@@ -66,7 +71,7 @@ int vlsArgs( int argc, char* argv[] ) {
   if( optind < argc ) {
 	vaultFile = argv[optind];
   } else {
-	fprintf( stderr, "Usage: %s\n", vlsSynopsis );
+	fprintf( stderr, "Usage: %s\n", help.synopsis );
 	return -1;
   }
 

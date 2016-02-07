@@ -3,39 +3,38 @@
 
 #include <inttypes.h>
 
-extern char* helpSummary;
-extern char* generateSummary;
-extern char* initSummary;
-extern char* infoSummary;
-extern char* mountSummary;
-extern char* recoverSummary;
-extern char* rlsSummary;
-extern char* vlsSummary;
-extern char* rcatSummary;
-extern char* vcatSummary;
-
-extern char* helpSynopsis;
-extern char* generateSynopsis;
-extern char* initSynopsis;
-extern char* infoSynopsis;
-extern char* mountSynopsis;
-extern char* recoverSynopsis;
-extern char* rlsSynopsis;
-extern char* vlsSynopsis;
-extern char* rcatSynopsis;
-extern char* vcatSynopsis;
+extern char* ProgramName;
 
 typedef struct {
-  char* name;
+  char* id;
+  char* text;
+} CommandOption;
+    
+typedef struct {
   char* summary;
   char* synopsis;
   char* description;
-  char* options;
+  CommandOption options[];
+} CommandHelp;  
+
+typedef struct {
+  char* name;
+  CommandHelp* help;
   int (*invoke)( int argc, char* argv[] );
 } Command;
 
 extern Command** cmds;
 extern int N;
+
+extern CommandHelp* helpGenerate;
+extern CommandHelp* helpInit;
+extern CommandHelp* helpInfo;
+extern CommandHelp* helpMount;
+extern CommandHelp* helpRls;
+extern CommandHelp* helpVls;
+extern CommandHelp* helpRcat;
+extern CommandHelp* helpVcat;
+extern CommandHelp* helpRecover;
 
 Command* commandLocate( char* name );
 

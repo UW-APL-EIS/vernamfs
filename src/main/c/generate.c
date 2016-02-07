@@ -69,9 +69,14 @@
  */
 static int hexDecode( uint8_t* encoded, int len, uint8_t* result );
 
-char* generateSummary = "Generate a one-time pad";
+static CommandHelp help = {
+  .summary = "Generate a one-time pad. Uses aes128 in ctr mode",
+  .synopsis = "-z? log2OTPSize",
+  .description = "gen DESC",
+  .options = { { NULL, NULL } }
+};
 
-char* generateSynopsis = "-z? log2OTPSize";
+CommandHelp* helpGenerate = &help;
 
 
 /**
@@ -108,7 +113,7 @@ int generateArgs( int argc, char* argv[] ) {
   }
 
   if( optind+1 > argc ) {
-	fprintf( stderr, "Usage: %s\n", generateSynopsis );
+	fprintf( stderr, "Usage: %s\n", help.synopsis );
 	return -1;
   }
 

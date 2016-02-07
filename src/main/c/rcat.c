@@ -44,14 +44,19 @@ static int hexOrDecimal( char* s ) {
   return atoi( s );
 }
 
-char* rcatSynopsis = "OTPREMOTE offset length";
+static CommandHelp help = {
+  .summary = "Cat section of a remote pad",
+  .synopsis = "OTPREMOTE offset length",
+  .description = "rcat desc",
+  .options = { { NULL,NULL } }
+};
 
-char* rcatSummary = "Cat part of a remote OTP";
+CommandHelp* helpRcat = &help;
 
 int rcatArgs( int argc, char* argv[] ) {
 
   if( argc < 4 ) {
-	fprintf( stderr, "Usage: %s\n", rcatSynopsis );
+	fprintf( stderr, "Usage: %s\n", help.synopsis );
 	return -1;
   }
 

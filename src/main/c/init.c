@@ -29,9 +29,20 @@
  * $ vernamfs init -l 30 -f FILE 1024
  */
 
-char* initSummary = "Initialise a device/file with a VernamFS header";
+static CommandHelp help = {
+  .summary = "Initialise a device/file with a VernamFS header",
+  .synopsis = "[<options>] device/file maxFiles",
+  .description = "INIT DESC",
+  .options = { { NULL, NULL } }
+};
 
-char* initSynopsis = "-f? (-l maxFileNameLength)? OTPFILE maxFiles";
+CommandHelp* helpInit = &help;
+
+
+char* initOptions = 
+  "\t-f\n\t\t Write a new VernamFS header on a device/file with an existing VernamFS\n";
+
+// (-l maxFileNameLength)? OTPFILE maxFiles";
 
 
 
@@ -57,7 +68,7 @@ int initArgs( int argc, char* argv[] ) {
   }
 
   if( optind+2 > argc ) {
-	fprintf( stderr, "Usage: %s\n", initSynopsis );
+	fprintf( stderr, "Usage: %s\n", help.synopsis );
 	return -1;
   }
   file = argv[optind];

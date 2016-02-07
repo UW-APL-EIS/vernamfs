@@ -38,14 +38,19 @@
  * @see vls.c
  */
 
-char* rlsSynopsis = "OTPREMOTE";
+static CommandHelp help = {
+  .summary = "List remote pad file metadata",
+  .synopsis = "rls sys",
+  .description = "rls DESC",
+  .options = { { NULL, NULL } }
+};
 
-char* rlsSummary = "TODO";
+CommandHelp* helpRls = &help;
 
 int rlsArgs( int argc, char* argv[] ) {
 
   if( argc < 2 ) {
-	fprintf( stderr, "Usage: %s\n", rlsSynopsis );
+	fprintf( stderr, "Usage: %s\n", help.synopsis );
 	return -1;
   }
 

@@ -6,6 +6,8 @@
 Command** cmds;
 int N;
 
+char* ProgramName = "vernamfs";
+
 Command* commandLocate( char* name ) {
   Command** cpp;
   for( cpp = cmds; *cpp; cpp++ ) {
@@ -16,13 +18,32 @@ Command* commandLocate( char* name ) {
   return NULL;
 }
 
+static char* SPACES[] = { NULL,
+						  "          ",
+						  "         ",
+						  "        ",
+						  "       ",
+						  "      ",
+						  "     ",
+						  "    ",
+						  "   ",
+						  "  ",
+						  " " };
+
 void commandsSummary( char result[] ) {
   int len = sprintf
-	( result, "\nUsage: vernamfs <command> [<commandArgs>]\n\nCommands:\n" );
+	( result, "\nUsage: vernamfs <command> [<args>]\n\nCommands:\n" );
   Command** cpp;
   for( cpp = cmds; *cpp; cpp++ ) {
 	Command* cp = *cpp;
-	len += sprintf( result+len, "  %s\t\t%s\n", cp->name, cp->summary );
+	CommandHelp* help = cp->help;
+	
+	// Help has no help!
+	if( !help )
+	  continue;
+
+	len += sprintf( result+len, "  %s%s%s\n", cp->name, 
+					SPACES[strlen(cp->name)], help->summary );
   }
 }
 
