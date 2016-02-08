@@ -32,7 +32,7 @@ static char* SPACES[] = { NULL,
 
 void commandsSummary( char result[] ) {
   int len = sprintf
-	( result, "\nUsage: vernamfs <command> [<args>]\n\nCommands:\n" );
+	( result, "\nUsage: %s <command> [<args>]\n\nCommands:\n", ProgramName );
   Command** cpp;
   for( cpp = cmds; *cpp; cpp++ ) {
 	Command* cp = *cpp;

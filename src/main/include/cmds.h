@@ -14,7 +14,7 @@ typedef struct {
   char* summary;
   char* synopsis;
   char* description;
-  CommandOption options[];
+  CommandOption* options[];
 } CommandHelp;  
 
 typedef struct {
@@ -26,6 +26,7 @@ typedef struct {
 extern Command** cmds;
 extern int N;
 
+extern CommandHelp* helpHelp;
 extern CommandHelp* helpGenerate;
 extern CommandHelp* helpInit;
 extern CommandHelp* helpInfo;

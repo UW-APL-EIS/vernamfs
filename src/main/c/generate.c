@@ -69,11 +69,13 @@
  */
 static int hexDecode( uint8_t* encoded, int len, uint8_t* result );
 
+static CommandOption z = { .id = "z", .text = "Key is 16 zero bytes" };
+
 static CommandHelp help = {
   .summary = "Generate a one-time pad. Uses aes128 in ctr mode",
   .synopsis = "-z? log2OTPSize",
   .description = "gen DESC",
-  .options = { { NULL, NULL } }
+  .options = { &z, NULL }
 };
 
 CommandHelp* helpGenerate = &help;

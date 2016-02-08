@@ -46,7 +46,7 @@ static CommandHelp help = {
   .summary ="Combine vault, remote listings. Recovers remote file metadata",
   .synopsis = "-r? OTPVAULT rlsResult|STDIN",
   .description = "vls desc",
-  .options = { { NULL, NULL } }
+  .options = { NULL } 
 };
 
 CommandHelp* helpVls = &help;

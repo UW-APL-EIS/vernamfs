@@ -3,15 +3,16 @@
 #include <unistd.h>
 
 #include "cmds.h"
-#include "aes128.h"
 
 /**
  * @author Stuart Maclean
  */
 
-char* helpSummary = "Explain a commnd";
+static CommandHelp help = {
+  .summary = "Explain available commands"
+};
 
-char* helpSynopsis = "help <command>";
+CommandHelp* helpHelp = &help;
 
 int helpArgs( int argc, char* argv[] ) {
 
@@ -29,6 +30,14 @@ int helpArgs( int argc, char* argv[] ) {
 			ProgramName, c->name, help->summary );
 	printf( "\nSYNOPSIS\n\t%s %s %s\n\n\n", 
 			ProgramName, c->name, help->synopsis );
+	printf( "\nDESCRIPTION\n\t%s\n\n\n", 
+			help->description );
+	if( help->options ) {
+	  printf( "\nOPTIONS\n\n" );
+	  CommandOption** cpp;
+	  for( cpp = help->options; *cpp; cpp++ ) {
+	  }
+	}
   } else {
 	fprintf( stderr, 
 			 "'%s' is not a %s command. See '%s help'.\n",

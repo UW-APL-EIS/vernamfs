@@ -105,6 +105,7 @@ int main( int argc, char* argv[] ) {
   
   Command help = {
 	.name = "help",
+	.help = helpHelp
   };
   cmds[N++] = &help;
 

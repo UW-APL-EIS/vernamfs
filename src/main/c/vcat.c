@@ -37,7 +37,7 @@ static CommandHelp help = {
   .summary = "Combine vault, remote cat sections. Recovers remote file content",
   .synopsis = "OTPVAULT rcatResult rlsResult?",
   .description = "vcat desc",
-  .options = { { NULL, NULL } }
+  .options = { NULL }
 };
 
 CommandHelp* helpVcat = &help;
