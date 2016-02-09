@@ -16,7 +16,6 @@ static CommandHelp help = {
   .summary = "Mount a VernamFS device/file",
   .synopsis = "mount sys",
   .description = "mount DESC",
-  .options = { NULL }
 };
 
 CommandHelp* helpMount = &help;

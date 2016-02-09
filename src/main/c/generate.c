@@ -69,13 +69,22 @@
  */
 static int hexDecode( uint8_t* encoded, int len, uint8_t* result );
 
-static CommandOption z = { .id = "z", .text = "Key is 16 zero bytes" };
+static CommandOption z = { .id = "z", .text = "Key is 16 zero bytes." };
+
+static CommandOption* options[] = { &z, NULL };
 
 static CommandHelp help = {
-  .summary = "Generate a one-time pad. Uses aes128 in ctr mode",
-  .synopsis = "-z? log2OTPSize",
-  .description = "gen DESC",
-  .options = { &z, NULL }
+  .summary = "Generate a pseudo one-time pad, using AES128 block cipher",
+
+  .synopsis = "[<options>] log2OTPSize",
+
+  .description = "Generate a pseudo one-time pad, using the AES128 block cipher, in CTR mode.\n  This is likely faster than reading /dev/[u]random, and can be regenerated at\n  will, so need not be stored. It is of course not random.\n\n  log2OTPSize is the base 2 log of the desired pad size. For 1MB, use 20,\n  for 1GB, use 30 etc.  Minimum is 12.\n\n  The 16-byte AES key is expected, hex-encoded, on standard input, unless the \n  -z option is used.\n\n  Pad content is written to standard out, so redirect to a suitable file.",
+
+  .options = options,
+
+  .examples = { "$ echo \"The cat sat on the mat\" | mds5um | cut -b 1-32 > KEY\n  $ vernamfs generate 16 < KEY > 64K.pad\n  $ cat KEY | vernamfs generate 20 > 1MB.pad ", 
+				"$ vernamfs generate -z 24 > 16MB.pad", NULL }
+
 };
 
 CommandHelp* helpGenerate = &help;

@@ -42,7 +42,6 @@ static CommandHelp help = {
   .summary = "List remote pad file metadata",
   .synopsis = "rls sys",
   .description = "rls DESC",
-  .options = { NULL }
 };
 
 CommandHelp* helpRls = &help;

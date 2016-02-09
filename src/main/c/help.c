@@ -16,6 +16,8 @@ CommandHelp* helpHelp = &help;
 
 int helpArgs( int argc, char* argv[] ) {
 
+  //  printf( "%s: %d\n", __FUNCTION__, argc );
+
   if( argc < 2 ) {
 	char usage[1024];
 	commandsSummary( usage );
@@ -26,16 +28,25 @@ int helpArgs( int argc, char* argv[] ) {
   Command* c = commandLocate( cmd );
   if( c ) {
 	CommandHelp* help = c->help;
-	printf( "\nNAME\n\t%s %s - %s\n\n", 
+	printf( "\nNAME\n  %s %s - %s\n", 
 			ProgramName, c->name, help->summary );
-	printf( "\nSYNOPSIS\n\t%s %s %s\n\n\n", 
+	printf( "\nSYNOPSIS\n  %s %s %s\n", 
 			ProgramName, c->name, help->synopsis );
-	printf( "\nDESCRIPTION\n\t%s\n\n\n", 
-			help->description );
+	printf( "\nDESCRIPTION\n  %s\n", help->description );
 	if( help->options ) {
-	  printf( "\nOPTIONS\n\n" );
+	  printf( "\nOPTIONS\n" );
 	  CommandOption** cpp;
 	  for( cpp = help->options; *cpp; cpp++ ) {
+		CommandOption* cp = *cpp;
+		printf( "  -%s\n    %s\n", cp->id, cp->text );
+	  }
+	}
+	if( help->examples ) {
+	  printf( "\nEXAMPLES\n" );
+	  char** cpp;
+	  for( cpp = help->examples; *cpp; cpp++ ) {
+		char* cp = *cpp;
+		printf( "  %s\n", cp );
 	  }
 	}
   } else {

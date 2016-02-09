@@ -10,7 +10,6 @@ static CommandHelp help = {
   .summary = "Print info about a VernamFS device/file",
   .synopsis = "OTPFILE",
   .description = "INFO DESC",
-  .options = { NULL }
 };
 
 CommandHelp* helpInfo = &help;

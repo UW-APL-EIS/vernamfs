@@ -14,7 +14,8 @@ typedef struct {
   char* summary;
   char* synopsis;
   char* description;
-  CommandOption* options[];
+  CommandOption** options;
+  char* examples[];
 } CommandHelp;  
 
 typedef struct {

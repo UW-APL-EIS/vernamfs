@@ -48,7 +48,6 @@ static CommandHelp help = {
   .summary = "Cat section of a remote pad",
   .synopsis = "OTPREMOTE offset length",
   .description = "rcat desc",
-  .options = { NULL } 
 };
 
 CommandHelp* helpRcat = &help;

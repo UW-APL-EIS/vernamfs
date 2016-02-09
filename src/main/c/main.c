@@ -97,7 +97,6 @@
 
 VFS Global;
 
-
 int main( int argc, char* argv[] ) {
 
   cmds = (Command**)calloc( 32, sizeof( Command* ) );
@@ -105,7 +104,8 @@ int main( int argc, char* argv[] ) {
   
   Command help = {
 	.name = "help",
-	.help = helpHelp
+	.help = helpHelp,
+	.invoke = helpArgs
   };
   cmds[N++] = &help;
 
@@ -192,7 +192,7 @@ int main( int argc, char* argv[] ) {
 	  */
 	  (c->invoke)( argc, argv );
 	} else {
-	  (c->invoke)( argc+1, argv+1 );
+	  (c->invoke)( argc-1, argv+1 );
 	}
 	return 0;
   } else {

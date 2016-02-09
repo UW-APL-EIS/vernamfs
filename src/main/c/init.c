@@ -33,7 +33,6 @@ static CommandHelp help = {
   .summary = "Initialise a device/file with a VernamFS header",
   .synopsis = "[<options>] device/file maxFiles",
   .description = "INIT DESC",
-  .options = { NULL }
 };
 
 CommandHelp* helpInit = &help;

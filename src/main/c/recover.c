@@ -13,7 +13,6 @@ static CommandHelp help = {
   .summary = "Combine vault, remote pads. Recovers entire remote data",
   .synopsis = "OTPREMOTE OTPVAULT outputDir",
   .description = "recover DESC",
-  .options = { NULL }
 };
 
 CommandHelp* helpRecover = &help;
