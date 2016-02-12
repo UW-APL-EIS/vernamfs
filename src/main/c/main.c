@@ -102,75 +102,25 @@ int main( int argc, char* argv[] ) {
   cmds = (Command**)calloc( 32, sizeof( Command* ) );
   N = 0;
   
-  Command help = {
-	.name = "help",
-	.help = helpHelp,
-	.invoke = helpArgs
-  };
-  cmds[N++] = &help;
+  cmds[N++] = &helpCmd;
 
-  Command generate = {
-	.name = "generate",
-	.help = helpGenerate,
-	.invoke = generateArgs
-  };
-  cmds[N++] = &generate;
+  cmds[N++] = &generateCmd;
 
-  Command init = {
-	.name = "init",
-	.help = helpInit,
-	.invoke = initArgs
-  };
-  cmds[N++] = &init;
+  cmds[N++] = &initCmd;
 
-  Command info = {
-	.name = "info",
-	.help = helpInfo,
-	.invoke = infoArgs
-  };
-  cmds[N++] = &info;
+  cmds[N++] = &infoCmd;
+
+  cmds[N++] = &mountCmd;
   
-  Command mount = {
-	.name = "mount",
-	.help = helpMount,
-	.invoke = mountArgs
-  };
-  cmds[N++] = &mount;
+  cmds[N++] = &rlsCmd;
+
+  cmds[N++] = &vlsCmd;
+
+  cmds[N++] = &rcatCmd;
+
+  cmds[N++] = &vcatCmd;
   
-  Command rls = {
-	.name = "rls",
-	.help = helpRls,
-	.invoke = rlsArgs
-  };
-  cmds[N++] = &rls;
-
-  Command vls = {
-	.name = "vls",
-	.help = helpVls,
-	.invoke = vlsArgs
-  };
-  cmds[N++] = &vls;
-
-  Command rcat = {
-	.name = "rcat",
-	.help = helpRcat,
-	.invoke = rcatArgs
-  };
-  cmds[N++] = &rcat;
-
-  Command vcat = {
-	.name = "vcat",
-	.help = helpVcat,
-	.invoke = vcatArgs
-  };
-  cmds[N++] = &vcat;
-  
-  Command recover = {
-	.name = "recover",
-	.help = helpRecover,
-	.invoke = recoverArgs
-  };
-  cmds[N++] = &recover;
+  cmds[N++] = &recoverCmd;
 
   cmds[N] = NULL;
   

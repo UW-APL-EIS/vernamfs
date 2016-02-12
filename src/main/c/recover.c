@@ -15,7 +15,11 @@ static CommandHelp help = {
   .description = "recover DESC",
 };
 
-CommandHelp* helpRecover = &help;
+Command recoverCmd = {
+  .name = "recover",
+  .help = &help,
+  .invoke = recoverArgs
+};
 
 int recoverArgs( int argc, char* argv[] ) {
 

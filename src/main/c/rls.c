@@ -44,7 +44,11 @@ static CommandHelp help = {
   .description = "rls DESC",
 };
 
-CommandHelp* helpRls = &help;
+Command rlsCmd = {
+  .name = "rls",
+  .help = &help,
+  .invoke = rlsArgs
+};
 
 int rlsArgs( int argc, char* argv[] ) {
 

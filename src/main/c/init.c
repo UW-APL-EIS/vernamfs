@@ -33,10 +33,15 @@ static CommandHelp help = {
   .summary = "Initialise a device/file with a VernamFS header",
   .synopsis = "[<options>] device/file maxFiles",
   .description = "INIT DESC",
+  .options = NULL,
+  .examples = NULL
 };
 
-CommandHelp* helpInit = &help;
-
+Command initCmd = {
+  .name = "init",
+  .help = &help,
+  .invoke = initArgs,
+};
 
 char* initOptions = 
   "\t-f\n\t\t Write a new VernamFS header on a device/file with an existing VernamFS\n";
@@ -67,7 +72,7 @@ int initArgs( int argc, char* argv[] ) {
   }
 
   if( optind+2 > argc ) {
-	fprintf( stderr, "Usage: %s\n", help.synopsis );
+	commandHelp( &initCmd );
 	return -1;
   }
   file = argv[optind];

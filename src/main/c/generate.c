@@ -87,8 +87,11 @@ static CommandHelp help = {
 
 };
 
-CommandHelp* helpGenerate = &help;
-
+Command generateCmd = {
+  .name = "generate",
+  .help = &help,
+  .invoke = generateArgs
+};
 
 /**
  * The aes key expected in hex-encoded form on STDIN.  If a trailing

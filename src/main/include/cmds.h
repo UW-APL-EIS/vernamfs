@@ -15,7 +15,7 @@ typedef struct {
   char* synopsis;
   char* description;
   CommandOption** options;
-  char* examples[];
+  char** examples;
 } CommandHelp;  
 
 typedef struct {
@@ -27,20 +27,22 @@ typedef struct {
 extern Command** cmds;
 extern int N;
 
-extern CommandHelp* helpHelp;
-extern CommandHelp* helpGenerate;
-extern CommandHelp* helpInit;
-extern CommandHelp* helpInfo;
-extern CommandHelp* helpMount;
-extern CommandHelp* helpRls;
-extern CommandHelp* helpVls;
-extern CommandHelp* helpRcat;
-extern CommandHelp* helpVcat;
-extern CommandHelp* helpRecover;
+extern Command helpCmd;
+extern Command generateCmd;
+extern Command initCmd;
+extern Command infoCmd;
+extern Command mountCmd;
+extern Command rlsCmd;
+extern Command vlsCmd;
+extern Command rcatCmd;
+extern Command vcatCmd;
+extern Command recoverCmd;
 
 Command* commandLocate( char* name );
 
 void commandsSummary( char result[] );
+
+void commandHelp( Command* c );
 
 int helpArgs( int argc, char* argv[] );
 

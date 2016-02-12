@@ -18,7 +18,11 @@ static CommandHelp help = {
   .description = "mount DESC",
 };
 
-CommandHelp* helpMount = &help;
+Command mountCmd = {
+  .name = "mount",
+  .help = &help,
+  .invoke = mountArgs
+};
 
 // argc, argv straight from main, NOT shifted, since fuse_main needs argv[0] ?
 int mountArgs( int argc, char* argv[] ) {

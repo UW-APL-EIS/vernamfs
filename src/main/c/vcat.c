@@ -39,7 +39,11 @@ static CommandHelp help = {
   .description = "vcat desc",
 };
 
-CommandHelp* helpVcat = &help;
+Command vcatCmd = {
+  .name = "vcat",
+	.help = &help,
+  .invoke = vcatArgs
+};
 
 int vcatArgs( int argc, char* argv[] ) {
 

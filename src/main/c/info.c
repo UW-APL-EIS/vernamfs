@@ -12,7 +12,11 @@ static CommandHelp help = {
   .description = "INFO DESC",
 };
 
-CommandHelp* helpInfo = &help;
+Command infoCmd = {
+  .name = "info",
+  .help = &help,
+  .invoke = infoArgs
+};
 
 int infoArgs( int argc, char* argv[] ) {
 

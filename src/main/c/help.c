@@ -12,7 +12,11 @@ static CommandHelp help = {
   .summary = "Explain available commands"
 };
 
-CommandHelp* helpHelp = &help;
+Command helpCmd = {
+  .name = "help",
+  .help = &help,
+  .invoke = helpArgs
+};
 
 int helpArgs( int argc, char* argv[] ) {
 
@@ -27,28 +31,7 @@ int helpArgs( int argc, char* argv[] ) {
   char* cmd = argv[1];
   Command* c = commandLocate( cmd );
   if( c ) {
-	CommandHelp* help = c->help;
-	printf( "\nNAME\n  %s %s - %s\n", 
-			ProgramName, c->name, help->summary );
-	printf( "\nSYNOPSIS\n  %s %s %s\n", 
-			ProgramName, c->name, help->synopsis );
-	printf( "\nDESCRIPTION\n  %s\n", help->description );
-	if( help->options ) {
-	  printf( "\nOPTIONS\n" );
-	  CommandOption** cpp;
-	  for( cpp = help->options; *cpp; cpp++ ) {
-		CommandOption* cp = *cpp;
-		printf( "  -%s\n    %s\n", cp->id, cp->text );
-	  }
-	}
-	if( help->examples ) {
-	  printf( "\nEXAMPLES\n" );
-	  char** cpp;
-	  for( cpp = help->examples; *cpp; cpp++ ) {
-		char* cp = *cpp;
-		printf( "  %s\n", cp );
-	  }
-	}
+	commandHelp( c );
   } else {
 	fprintf( stderr, 
 			 "'%s' is not a %s command. See '%s help'.\n",
@@ -57,6 +40,33 @@ int helpArgs( int argc, char* argv[] ) {
   }
 
   return 0;
+}
+
+void commandHelp( Command* c ) {
+  CommandHelp* help = c->help;
+  printf( "\nNAME\n  %s %s - %s\n", 
+		  ProgramName, c->name, help->summary );
+  printf( "\nSYNOPSIS\n  %s %s %s\n", 
+		  ProgramName, c->name, help->synopsis );
+  printf( "\nDESCRIPTION\n  %s\n", help->description );
+  if( help->options ) {
+	printf( "\nOPTIONS\n" );
+	CommandOption** cpp;
+	for( cpp = help->options; *cpp; cpp++ ) {
+	  CommandOption* cp = *cpp;
+	  printf( "  -%s\n    %s\n", cp->id, cp->text );
+	}
+  }
+  if( help->examples ) {
+	printf( "\nEXAMPLES\n" );
+	char** cpp;
+	for( cpp = help->examples; *cpp; cpp++ ) {
+	  char* cp = *cpp;
+	  printf( "  %s\n", cp );
+	}
+  }
+  //printf( "\n%s\n", c->help->summary );
+  //printf( "\nUsage: %s %s %s\n", ProgramName, c->name, c->help->synopsis );
 }
 
 // eof

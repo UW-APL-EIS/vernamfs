@@ -50,7 +50,11 @@ static CommandHelp help = {
   .description = "rcat desc",
 };
 
-CommandHelp* helpRcat = &help;
+Command rcatCmd = {
+  .name = "rcat",
+  .help = &help,
+  .invoke = rcatArgs
+};
 
 int rcatArgs( int argc, char* argv[] ) {
 

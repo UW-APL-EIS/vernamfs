@@ -48,7 +48,11 @@ static CommandHelp help = {
   .description = "vls desc",
 };
 
-CommandHelp* helpVls = &help;
+Command vlsCmd = {
+  .name = "vls",
+  .help = &help,
+  .invoke = vlsArgs
+};
 
 int vlsArgs( int argc, char* argv[] ) {
 
