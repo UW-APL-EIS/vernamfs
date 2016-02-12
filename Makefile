@@ -94,7 +94,8 @@ clean:
 
 .PHONY: zip
 zip:
-	git archive -o vernamfs-$(VERSION).zip --prefix vernamfs/ HEAD
+	git archive -o vernamfs-$(VERSION).zip \
+	--prefix vernamfs-$(VERSION)/ HEAD
 
 vernamfs.o : vernamfs.c $(BASEDIR)/src/main/include/version.h
 

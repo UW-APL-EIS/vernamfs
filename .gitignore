@@ -1,4 +1,5 @@
-*.o
 version.h
+*.o
+*.zip
 
 # eof
