@@ -5,7 +5,6 @@
 #include <string.h>
 #include <unistd.h>
 
-
 #include "vernamfs.h"
 #include "version.h"
 

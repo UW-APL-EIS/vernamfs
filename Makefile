@@ -40,7 +40,6 @@ TOOLS = headerInfo
 
 MAINSRCDIR = $(BASEDIR)/src/main/c
 
-# Exclude from the srcs list any Emacs tmp files starting '#'
 MAINSRCS = $(shell cd $(MAINSRCDIR) && ls *.c)
 
 MAINOBJS = $(MAINSRCS:.c=.o)
@@ -50,7 +49,6 @@ TESTSRCDIR = $(BASEDIR)/src/test/c
 VPATH = $(MAINSRCDIR) $(TESTSRCDIR)
 
 CC ?= gcc
-
 
 CPPFLAGS ?= `pkg-config --cflags fuse`
 
@@ -86,16 +84,13 @@ $(TESTS) $(TOOLS): % : %.o
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
 $(BASEDIR)/src/main/include/version.h : $(BASEDIR)/Makefile
-	@echo "#define MAJOR_VERSION" $(MAJOR_VERSION) \
-	| tee $(BASEDIR)/src/main/include/version.h
-	@echo "#define MINOR_VERSION" $(MINOR_VERSION) \
-	| tee -a $(BASEDIR)/src/main/include/version.h
-	@echo "#define PATCH_VERSION" $(PATCH_VERSION) \
-	| tee -a $(BASEDIR)/src/main/include/version.h
+	@echo "#define MAJOR_VERSION" $(MAJOR_VERSION) | tee $@
+	@echo "#define MINOR_VERSION" $(MINOR_VERSION) | tee -a $@
+	@echo "#define PATCH_VERSION" $(PATCH_VERSION) | tee -a $@
 
 .PHONY: clean
 clean:
-	rm $(BINARIES) $(TESTS) *.o
+	rm $(BINARIES) $(TESTS) *.o $(BASEDIR)/src/main/include/version.h
 
 .PHONY: zip
 zip:
