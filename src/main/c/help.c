@@ -64,6 +64,7 @@ void commandHelp( Command* c ) {
 	  char* cp = *cpp;
 	  printf( "  %s\n", cp );
 	}
+	printf( "\n" );
   }
   //printf( "\n%s\n", c->help->summary );
   //printf( "\nUsage: %s %s %s\n", ProgramName, c->name, c->help->synopsis );

@@ -73,17 +73,31 @@ static CommandOption z = { .id = "z", .text = "Key is 16 zero bytes." };
 
 static CommandOption* options[] = { &z, NULL };
 
+static char example1[] = 
+  "$ echo \"The cat sat on the mat\" | md5sum | cut -b 1-32 > KEY";
+
+static char example2[] = 
+  "$ vernamfs generate 16 < KEY > 64K.pad";
+
+static char example3[] = "$ cat KEY | vernamfs generate 20 > 1MB.pad";
+
+static char example4[] = "$ echo 12345678901234567890123456789012 | vernamfs generate 30 > 1GB.pad";
+
+static char example5[] = "$ vernamfs generate -z 24 > 16MB.pad";
+
+static char* examples[] = { example1, example2, example3, example4, 
+							example5, NULL };
+
 static CommandHelp help = {
   .summary = "Generate a pseudo one-time pad, using AES128 block cipher",
 
-  .synopsis = "[<options>] log2OTPSize",
+  .synopsis = "[<options>] log2PadSize",
 
-  .description = "Generate a pseudo one-time pad, using the AES128 block cipher, in CTR mode.\n  This is likely faster than reading /dev/[u]random, and can be regenerated at\n  will, so need not be stored. It is of course not random.\n\n  log2OTPSize is the base 2 log of the desired pad size. For 1MB, use 20,\n  for 1GB, use 30 etc.  Minimum is 12.\n\n  The 16-byte AES key is expected, hex-encoded, on standard input, unless the \n  -z option is used.\n\n  Pad content is written to standard out, so redirect to a suitable file.",
+  .description = "Generate a pseudo one-time pad, using the AES128 block cipher, in CTR mode.\n  This is likely faster than reading /dev/[u]random.  It can be regenerated at\n  will, so no vault copy need be stored. It is of course not random.\n\n  log2PadSize is the base 2 log of the desired pad size. For a 1MB pad, use 20,\n  for 1GB, use 30, etc.  Minimum is 12.\n\n  The 16-byte AES key is expected, hex-encoded, on standard input, unless the \n  -z option is used.\n\n  Pad content is written to standard output, so redirect to a suitable file.",
 
   .options = options,
 
-  .examples = { "$ echo \"The cat sat on the mat\" | mds5um | cut -b 1-32 > KEY\n  $ vernamfs generate 16 < KEY > 64K.pad\n  $ cat KEY | vernamfs generate 20 > 1MB.pad ", 
-				"$ vernamfs generate -z 24 > 16MB.pad", NULL }
+  .examples = examples
 
 };
 
@@ -127,22 +141,23 @@ int generateArgs( int argc, char* argv[] ) {
   }
 
   if( optind+1 > argc ) {
-	fprintf( stderr, "Usage: %s\n", help.synopsis );
+	commandHelp( &generateCmd );
 	return -1;
   }
 
   log2OTPSize = atoi( argv[optind] );
-  if( log2OTPSize < 4 || log2OTPSize > 40 ) {
-	fprintf( stderr, "%s: Size out-of-bounds: 4 <= size <= 40\n", argv[0] );
+  if( log2OTPSize < 12 || log2OTPSize > 40 ) {
+	fprintf( stderr, "%s: Size out-of-bounds: 12 <= log2PadSize <= 40\n", 
+			 argv[0] );
 	return -1;
   }
   
   if( !key ) {
 	uint8_t keyHex[128];
-	int nin = read( STDIN_FILENO, keyHex, 128 );
+	int nin = read( STDIN_FILENO, keyHex, 32 );
 	if( nin < 32 ) {
 	  fprintf( stderr, 
-			   "%s: Hexed key (length %d) too short. Need 32/64 hex digits.\n", 
+			   "%s: Hexed key (length %d) too short. Need 32 hex digits.\n", 
 			   argv[0], nin );
 	  return -1;
 	}
