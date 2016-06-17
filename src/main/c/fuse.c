@@ -7,6 +7,15 @@
 
 #include "vernamfs.h"
 
+/**
+ * @author Stuart Maclean
+ *
+ * Fuse callbacks required for vernamfs. Uses a single VFS struct,
+ * named Global, for the actual back-end implementation.
+ */
+
+static int inUse = 0;
+
 static int vernamfs_getattr(const char *path, struct stat *stbuf ) {
   if( 1 )
 	printf( "%s: %s\n", __FUNCTION__, path );
@@ -24,9 +33,9 @@ static int vernamfs_getattr(const char *path, struct stat *stbuf ) {
 }
 
 /*
-  Without this, a 'ls mountPoint' returns 'Function not implemented'.
-  I prefer the result to be 'Operation not supported', which we achieve
-  by including this readdir impl.
+  Without any impl of readdir, a 'ls mountPoint' returns 'Function not
+  implemented'.  I prefer the result to be 'Operation not supported',
+  which we achieve by including this readdir impl. 
 */ 
 static int vernamfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 							off_t offset, struct fuse_file_info *fi) {
@@ -36,6 +45,13 @@ static int vernamfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   return -ENOTSUP;
 }
 
+/**
+ * When a user program does
+ <code>
+ int fd = open( "mount/file.c", O_WRONLY );
+ </code>
+ *
+ */
 static int vernamfs_open( const char* path, struct fuse_file_info* fi ) {
   if( 1 )
 	printf( "%s: %s %x\n", __FUNCTION__, path, fi->flags );
@@ -45,11 +61,15 @@ static int vernamfs_open( const char* path, struct fuse_file_info* fi ) {
 	return -ENOTSUP;
 
   /*
-	In addition to being write-only, cannot do appends, since cannot
-	locate existing file name and thus data.
+	In addition to being write-only, cannot open for appends since
+	we cannot locate any existing file name and so also no data.
   */
   if( (fi->flags & O_APPEND) == O_APPEND )
 	return -ENOTSUP;
+
+  if( inUse )
+	return -EBUSY;
+  inUse = 1;
 
   fi->fh = (uint64_t)&Global;
 
@@ -98,6 +118,8 @@ static int vernamfs_release(const char *path, struct fuse_file_info *fi) {
 
   if( 1 )
 	VFSReport( &Global );
+
+  inUse = 0;
 
   return 0;
 }

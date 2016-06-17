@@ -78,10 +78,10 @@ default: $(BINARIES)
 test: $(TESTS)
 
 vernamfs: $(MAINOBJS)
-	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
+	$(CC) $^ $(LDFLAGS) $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
 $(TESTS) $(TOOLS): % : %.o
-	$(CC) $^ $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
+	$(CC) $^ $(LDFLAGS) $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
 $(BASEDIR)/src/main/include/version.h : $(BASEDIR)/Makefile
 	@echo "#define MAJOR_VERSION" $(MAJOR_VERSION) | tee $@
