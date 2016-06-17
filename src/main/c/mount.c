@@ -12,10 +12,32 @@
 #include "cmds.h"
 #include "vernamfs.h"
 
+static CommandOption f = { .id = "f", .text = "Fuse mount in foreground." };
+static CommandOption d = { .id = "d", .text = "Fuse mount in debug mode." };
+
+static CommandOption* options[] = { &f, &d, NULL };
+
+static char example1[] = 
+  "$ dd if=/dev/urandom bs=1M count=1 of=OTP.1GB; mkdir mnt";
+
+static char example2[] = "$ vernamfs mount OTP.1GB mnt";
+
+static char example3[] = "$ vernamfs mount OTP.1GB mnt -f";
+
+static char example4[] = "$ cp myFile mnt/; echo foobar > mnt/foo";
+
+static char example5[] = "$ fusermount -u mnt";
+
+static char* examples[] = { example1, example2, example3, 
+							example4, example5, NULL };
+
+
 static CommandHelp help = {
   .summary = "Mount a VernamFS device/file",
-  .synopsis = "mount sys",
-  .description = "mount DESC",
+  .synopsis = "OTPFile mountPoint [<fuseOptions>]",
+  .description = "Mount a mountPoint, with a one-time pad file as the underlying storage.\n  The mount uses FUSE, in single-threaded mode. Any data written to the mount\n  point is encrypted via XOR'ing with the pad contents. The filesystem is\n  write-only!",
+  .options = options,
+  .examples = examples
 };
 
 Command mountCmd = {
@@ -32,7 +54,7 @@ int mountArgs( int argc, char* argv[] ) {
 	(4) a fuse mount point. 5+ would be any fuseOptions
   */
   if( argc < 4 ) {
-	fprintf( stderr, "Usage: %s\n", help.synopsis );
+	commandHelp( &mountCmd );
 	return -1;
   }
 

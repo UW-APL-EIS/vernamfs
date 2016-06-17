@@ -8,6 +8,14 @@
 #include "vernamfs.h"
 #include "version.h"
 
+/**
+ * @author Stuart Maclean
+ *
+ * The vernamfs 'back end'.  Called by fuse routines. Could also in
+ * theory be called directly by programs linking to Vernamfs as a
+ * library, if FUSE were not available.
+ */
+
 static uint64_t alignUp( uint64_t val, uint64_t boundary );
 
 // Accumulating count of the active file write.  Reset on release
@@ -128,6 +136,17 @@ void VFSRelease( VFS* thiz ) {
 
 /********************** Private Impl: Header Read/Write ******************/
 
+/**
+ * @param length - Desired length of the entire VFS, in bytes.  The
+ * length comprises the header, the FAT and the data area.
+ *
+ * @param maxFiles - Upper limit on the number of files the VFS must
+ * hold.  Once set, cannot be changed.  Affects the FAT size.
+ *
+ * @param maxNameLength - How long file names can be in the VFS.
+ * Affects FAT entry size and thus FAT size.  Typical values are 32,
+ * 64.  FAT entry size is rounded up for next pow2.
+ */
 static int VFSHeaderInit( VFSHeader* thiz, size_t length, 
 						  int maxFiles, int maxNameLength ) {
   
@@ -145,8 +164,9 @@ static int VFSHeaderInit( VFSHeader* thiz, size_t length,
   /* 
 	 Given user's suggested maxNameLength, we minimise our
 	 VFSTableEntry size such that it can hold the required fixed parts
-	 (currrently offset and length) and a name, and we pad up to next
-	 2^N.  We know the loop test will succeed, since we checked
+	 (currently offset and length) and a name of length at least the
+	 maxNameLength, and we pad size of VFSTableEntry up to next 2^N.
+	 We know the loop test will succeed, since we checked
 	 maxNameLength too big above.
   */
   uint32_t tableEntrySize;
@@ -211,7 +231,6 @@ static void VFSHeaderLoad( VFSHeader* hTarget, void* addr ) {
   // Note that the header load is NOT an XOR operation, it cannot be...
   *hTarget = *hSource;
 }
-
 
 static void VFSHeaderStore( VFSHeader* hSource, void* addr ) {
   VFSHeader* hTarget = (VFSHeader*)addr;
