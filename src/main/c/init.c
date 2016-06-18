@@ -29,12 +29,32 @@
  * $ vernamfs init -l 30 -f FILE 1024
  */
 
+static CommandOption f = 
+  { .id = "f", 
+	.text = "Force initialization even when existing VernamFS "
+	"already present.\n    May lose data!" };
+
+static CommandOption l = 
+  { .id = "l", 
+	.text = "Maximum length of file name.  Defaults to 64-17=47. Minimum is 32-17=15.\n    Maximum is 128-17=111." };
+
+static CommandOption* options[] = { &f, &l, NULL };
+
+static char example1[] = 
+  "$ dd if=/dev/urandom bs=1M count=1 of=OTP.1GB";
+
+static char example2[] = "$ vernamfs init OTP.1GB 128";
+
+static char example3[] = "$ vernamfs init -f -l 128 OTP.1GB 1024";
+
+static char* examples[] = { example1, example2, example3, NULL };
+
 static CommandHelp help = {
-  .summary = "Initialise a device/file with a VernamFS header",
-  .synopsis = "[<options>] device/file maxFiles",
-  .description = "INIT DESC",
-  .options = NULL,
-  .examples = NULL
+  .summary = "Initialise a one-time pad file with a VernamFS header",
+  .synopsis = "[<options>] OTPFile maxFileCount",
+  .description = "Initialise a VernamFS, by writing a header at the start of the supplied\n  OTPFile.  The maximum number of files that the VernamFS is expected to hold \n  must be supplied at init time.",
+  .options = options,
+  .examples = examples
 };
 
 Command initCmd = {
@@ -42,13 +62,6 @@ Command initCmd = {
   .help = &help,
   .invoke = initArgs,
 };
-
-char* initOptions = 
-  "\t-f\n\t\t Write a new VernamFS header on a device/file with an existing VernamFS\n";
-
-// (-l maxFileNameLength)? OTPFILE maxFiles";
-
-
 
 int initArgs( int argc, char* argv[] ) {
 
