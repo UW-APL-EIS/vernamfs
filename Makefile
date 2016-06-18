@@ -34,7 +34,7 @@ VERSION = $(MAJOR_VERSION).$(MINOR_VERSION).$(PATCH_VERSION)
 
 BINARIES = vernamfs
 
-TESTS = base64Tests numParseTests deviceSizeTest
+TESTS = base64Tests numParseTests deviceSizeTest inUseTest
 
 TOOLS = headerInfo
 

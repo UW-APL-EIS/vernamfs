@@ -35,7 +35,7 @@ static char* examples[] = { example1, example2, example3,
 static CommandHelp help = {
   .summary = "Mount a VernamFS device/file",
   .synopsis = "OTPFile mountPoint [<fuseOptions>]",
-  .description = "Mount a mountPoint, with a one-time pad file as the underlying storage.\n  The mount uses FUSE, in single-threaded mode. Any data written to the mount\n  point is encrypted via XOR'ing with the pad contents. The filesystem is\n  write-only!",
+  .description = "Mount a mountPoint, with a one-time pad file as the underlying storage.\n  The mount uses FUSE, in single-threaded mode. Any data written to the mount\n  point is encrypted via XOR'ing with the pad contents.  The filesystem is\n  write-only!",
   .options = options,
   .examples = examples
 };
