@@ -232,7 +232,7 @@ int VFSInit( VFS* thiz, size_t length, int maxFiles, int maxNameLength );
 void VFSLoad( VFS* thiz, void* addr );
 
 // Debug, print out info..
-void VFSReport( VFS* );
+void VFSReport( VFS*, int expert );
 
 /**
  * Called at each fuse_release and also at fuse_destroy

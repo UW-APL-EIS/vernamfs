@@ -92,7 +92,7 @@ int mountArgs( int argc, char* argv[] ) {
 	return -1;
   }
 
-  VFSReport( &Global );
+  VFSReport( &Global, 1 );
 
   /*
 	Re-org the command line so that fuse_main doesn't see our 'mount'

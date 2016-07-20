@@ -77,7 +77,7 @@ static int vernamfs_open( const char* path, struct fuse_file_info* fi ) {
 
   // LOOK: make reporting a debug option...
   if( 1 ) 
-	VFSReport( &Global );
+	VFSReport( &Global, 1 );
 
   return sc;
 }
@@ -101,7 +101,7 @@ static int vernamfs_write(const char *path, const char *buf, size_t size,
   size_t sc = VFSWrite( &Global, buf, size );
   
   if( 1 )
-	VFSReport( &Global );
+	VFSReport( &Global, 1 );
 
   return sc == -1 ? -ENOSPC : sc;
 }
@@ -117,7 +117,7 @@ static int vernamfs_release(const char *path, struct fuse_file_info *fi) {
   VFSStore( &Global );
 
   if( 1 )
-	VFSReport( &Global );
+	VFSReport( &Global, 1 );
 
   inUse = 0;
 

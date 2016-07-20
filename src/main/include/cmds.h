@@ -48,11 +48,12 @@ int helpArgs( int argc, char* argv[] );
 
 int initArgs( int argc, char* argv[] );
 
-int init( char* file, int maxFiles, int maxFileNameLength, int force );
+int init( char* file, int maxFiles, int maxFileNameLength,
+	  int force, int expert );
 
 int infoArgs( int argc, char* argv[] );
 
-int info( char* file );
+int info( char* file, int expert );
 
 int mountArgs( int argc, char* argv[] );
 

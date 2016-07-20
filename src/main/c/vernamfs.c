@@ -25,7 +25,7 @@ static int VFSHeaderInit( VFSHeader* thiz, size_t length,
 						  int maxFiles, int maxNameLength );
 static void VFSHeaderLoad( VFSHeader* hTarget, void* addr );
 static void VFSHeaderStore( VFSHeader* hSource, void* addr );
-static void VFSHeaderReport( VFSHeader* h );
+static void VFSHeaderReport( VFSHeader* h, int expert );
 
 int VFSInit( VFS* thiz, size_t length, int maxFiles, int maxNameLength ) {
   VFSHeader* h = &thiz->header;
@@ -44,9 +44,9 @@ void VFSStore( VFS* thiz ) {
 }
 
 // Debug...
-void VFSReport( VFS* thiz ) {
+void VFSReport( VFS* thiz, int expert ) {
   VFSHeader* h = &thiz->header;
-  VFSHeaderReport( h );
+  VFSHeaderReport( h, expert );
 
   //  printf( "Backing: %"PRIx64"\n", (uint64_t)thiz->backing );
 }
@@ -209,21 +209,44 @@ static int VFSHeaderInit( VFSHeader* thiz, size_t length,
   return 0;
 }
 
-static void VFSHeaderReport( VFSHeader* h ) {
-  printf( "Magic: %"PRIx64" (%.8s)\n", h->magic, (char*)&h->magic );
-  int maj = (h->version >> 16) & 0xff;
-  int min = (h->version >> 8) & 0xff;
-  int patch = h->version & 0xff;
-  printf( "Version: %d.%d.%d\n", maj, min, patch );
-  printf( "Flags: 0x%04X\n", h->flags );
-  printf( "Length: 0x%"PRIx64"\n", h->length );
-  printf( "Padding: 0x%"PRIx64"\n", h->padding );
-  printf( "TableEntrySize: %d\n", h->tableEntrySize );
-  printf( "TableOffset: 0x%"PRIx64"\n", h->tableOffset );
-  printf( "TablePtr: 0x%"PRIx64"\n", h->tablePtr );
-  printf( "MaxFiles: %d\n", h->maxFiles );
-  printf( "DataOffset: 0x%"PRIx64"\n", h->dataOffset );
-  printf( "DataPtr: 0x%"PRIx64"\n", h->dataPtr );
+static void VFSHeaderReport( VFSHeader* h, int expert ) {
+  if( expert ) {
+	printf( "Magic         : %"PRIx64" (%.8s)\n", h->magic, (char*)&h->magic );
+	int maj = (h->version >> 16) & 0xff;
+	int min = (h->version >> 8) & 0xff;
+	int patch = h->version & 0xff;
+	printf( "Version       : %d.%d.%d\n", maj, min, patch );
+	printf( "Flags         : 0x%04X\n", h->flags );
+	printf( "Padding       : 0x%"PRIx64"\n", h->padding );
+	printf( "Length        : 0x%"PRIx64"\n", h->length );
+	printf( "\n" );
+	printf( "TableOffset   : 0x%"PRIx64"\n", h->tableOffset );
+	printf( "TableExtent   : 0x%x\n", h->tableEntrySize * h->maxFiles );
+	printf( "TableEntrySize: %d\n", h->tableEntrySize );
+	printf( "MaxFiles      : %d\n", h->maxFiles );
+	printf( "\n" );
+	printf( "DataOffset    : 0x%"PRIx64"\n", h->dataOffset );
+	printf( "DataExtent    : 0x%"PRIx64"\n", h->length - h->dataOffset );
+	printf( "\n" );
+	printf( "TablePtr      : 0x%"PRIx64"\n", h->tablePtr );
+	printf( "File Count    : 0x%"PRIx64"\n",
+			(h->tablePtr - h->tableOffset) / h->tableEntrySize );
+	printf( "DataPtr       : 0x%"PRIx64"\n", h->dataPtr );
+	printf( "Data Total    : 0x%"PRIx64"\n", h->dataPtr - h->dataOffset );
+  } else {
+	printf( "Total filesystem size (bytes)           : %"PRIu64"\n",
+			h->length );
+	printf( "Maximum file name length                : %d\n",
+			h->tableEntrySize - (int)sizeof( VFSTableEntryFixed ) - 1);
+	printf( "Number of files the filesystem can hold : %d\n",
+			h->maxFiles );
+	printf( "Number of files already allocated       : %"PRId64"\n",
+			(h->tablePtr - h->tableOffset) / h->tableEntrySize );
+	printf( "Total space for file content (bytes)    : %"PRId64"\n",
+			h->length - h->dataOffset );
+	printf( "Space already used for file content     : %"PRId64"\n",
+			h->dataPtr - h->dataOffset );
+  }
 }
 
 static void VFSHeaderLoad( VFSHeader* hTarget, void* addr ) {

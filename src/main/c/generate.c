@@ -29,8 +29,9 @@
  * true OTP.
  *
  * Currently we support only the AES-128 variant of aes, since that is
- * the only code we snarfed off the net to add to VernamFS.  If/when we
- * locate a nice, clean, small AES-256 implementation, we'll add.
+ * the only code we snarfed off the net to add to VernamFS.  This has
+ * a 128-bit key.  If/when we locate a nice, clean, small AES-256
+ * implementation (256-bit key), we'll add.
  *
  * We use aes in 'counter mode', aka CTR mode.  We simply increment
  * the counter from 0, and keep counting until the desired length of
@@ -40,7 +41,7 @@
  * key.  The generate command expects the key on stdin, as a
  * hex-encoded string:
  *
- * $ echo "The cat sat on the mat" | mds5um | cut -b 1-32 > KEY
+ * $ echo "The cat sat on the mat" | md5sum | cut -b 1-32 > KEY
  *
  * // A 1MB OTP, 2^20
  * $ vernamfs generate 20 < KEY

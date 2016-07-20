@@ -6,10 +6,28 @@
 #include "cmds.h"
 #include "vernamfs.h"
 
+static CommandOption e = 
+  { .id = "e", 
+	.text = "Expert mode.  Prints out entire VFS header." };
+
+static CommandOption* options[] = { &e, NULL };
+
+
+static char example1[] = 
+  "$ vernamfs generate -z 16 > 64K.pad";
+
+static char example2[] = "$ vernamfs info 64K.pad";
+
+static char example3[] = "$ vernamfs info -e 64K.pad";
+
+static char* examples[] = { example1, example2, example3, NULL };
+
 static CommandHelp help = {
   .summary = "Print info about a VernamFS device/file",
-  .synopsis = "OTPFILE",
-  .description = "INFO DESC",
+  .synopsis = "[<options>] OTPFILE",
+  .description = "Prints details of a Vernam Filesystem, including files used,\n  maximum files allowed, data area used, etc",
+  .options = options,
+  .examples = examples,
 };
 
 Command infoCmd = {
@@ -20,15 +38,28 @@ Command infoCmd = {
 
 int infoArgs( int argc, char* argv[] ) {
 
-  if( argc < 3 ) {
-	fprintf( stderr, "Usage: %s\n", help.summary );
-	return -1;
+  int expert = 0;
+
+  int c;
+  while( (c = getopt( argc, argv, "e") ) != -1 ) {
+	switch( c ) {
+	case 'e':
+	  expert = 1;
+	  break;
+	default:
+	  break;
+	}
   }
 
-  return info( argv[2] );
+  if( optind+1 > argc ) {
+	commandHelp( &infoCmd );
+  }
+  char* file = argv[optind];
+  
+  return info( file, expert );
 }
 
-int info( char* file ) {
+int info( char* file, int expert ) {
 
   struct stat st;
   int sc = stat( file, &st );
@@ -58,7 +89,7 @@ int info( char* file ) {
   if( h->magic != VERNAMFS_MAGIC ) {
 	fprintf( stderr, "%s: Invalid magic number\n", file );
   } else {
-	VFSReport( &vfs );
+	VFSReport( &vfs, expert );
   }
 
   close( fd );

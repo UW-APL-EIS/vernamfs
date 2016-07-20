@@ -112,9 +112,9 @@ int recover( char* otpRemote, char* otpVault, char* outputDir ) {
 	VFSTableEntryFixed* tef = (VFSTableEntryFixed*)teActual;
 	char* name = teActual + sizeof( VFSTableEntryFixed );
 	
-	if( 0 )
-	  printf( "%s %lx %lx\n", name, tef->offset, tef->length );
-
+	if( 0 ) {
+	  // printf( "%s %lx %lx\n", name, tef->offset, tef->length );
+	}
 	char* contentActual = (char*)malloc( tef->length );
 	char* contentR = (char*)(addrR + tef->offset );
 	char* contentV = (char*)(addrV + tef->offset );

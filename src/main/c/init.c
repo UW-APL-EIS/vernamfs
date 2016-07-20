@@ -38,10 +38,14 @@ static CommandOption l =
   { .id = "l", 
 	.text = "Maximum length of file name.  Defaults to 64-17=47. Minimum is 32-17=15.\n    Maximum is 128-17=111." };
 
-static CommandOption* options[] = { &f, &l, NULL };
+static CommandOption e = 
+  { .id = "e", 
+	.text = "Expert mode.  Prints out entire VFS header." };
+
+static CommandOption* options[] = { &e, &f, &l, NULL };
 
 static char example1[] = 
-  "$ dd if=/dev/urandom bs=1M count=1 of=OTP.1GB";
+  "$ dd if=/dev/urandom bs=1M count=1024 of=OTP.1GB";
 
 static char example2[] = "$ vernamfs init OTP.1GB 128";
 
@@ -65,14 +69,18 @@ Command initCmd = {
 
 int initArgs( int argc, char* argv[] ) {
 
+  int expert = 0;
   int force = 0;
   int maxFileNameLength = VERNAMFS_NAMELENGTHDEFAULT;
   char* file = NULL;
   int maxFiles = 0;
 
   int c;
-  while( (c = getopt( argc, argv, "fl:") ) != -1 ) {
+  while( (c = getopt( argc, argv, "efl:") ) != -1 ) {
 	switch( c ) {
+	case 'e':
+	  expert = 1;
+	  break;
 	case 'f':
 	  force = 1;
 	  break;
@@ -96,10 +104,11 @@ int initArgs( int argc, char* argv[] ) {
 	return -1;
   }
 
-  return init( file, maxFiles, maxFileNameLength, force );
+  return init( file, maxFiles, maxFileNameLength, force, expert );
 }
 
-int init( char* file, int maxFiles, int maxFileNameLength, int force ) {
+int init( char* file, int maxFiles, int maxFileNameLength,
+		  int force, int expert ) {
 
   struct stat st;
   int sc = stat( file, &st );
@@ -107,7 +116,6 @@ int init( char* file, int maxFiles, int maxFileNameLength, int force ) {
 	fprintf( stderr, "%s: Not a regular file.\n", file );
 	return -1;
   }
-  
   
   VFS vfs;
   sc = VFSInit( &vfs, st.st_size, maxFiles, maxFileNameLength );
@@ -138,7 +146,7 @@ int init( char* file, int maxFiles, int maxFileNameLength, int force ) {
 	return -1;
   }
 
-  VFSReport( &vfs );
+  VFSReport( &vfs, expert );
 
   close( fd );
   return 0;
