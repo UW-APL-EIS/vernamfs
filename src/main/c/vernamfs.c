@@ -238,10 +238,12 @@ static void VFSHeaderReport( VFSHeader* h, int expert ) {
 			h->length );
 	printf( "Maximum file name length                : %d\n",
 			h->tableEntrySize - (int)sizeof( VFSTableEntryFixed ) - 1);
+	printf( "\n" );
 	printf( "Number of files the filesystem can hold : %d\n",
 			h->maxFiles );
 	printf( "Number of files already allocated       : %"PRId64"\n",
 			(h->tablePtr - h->tableOffset) / h->tableEntrySize );
+	printf( "\n" );
 	printf( "Total space for file content (bytes)    : %"PRId64"\n",
 			h->length - h->dataOffset );
 	printf( "Space already used for file content     : %"PRId64"\n",
