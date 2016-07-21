@@ -24,11 +24,17 @@ static int vernamfs_getattr(const char *path, struct stat *stbuf ) {
 	If we don't say 'everything except / is a file' then we cannot
 	open any file, even for writing.
   */
+
   if( strcmp( path, "/" ) == 0 ) {
 	stbuf->st_mode = S_IFDIR | 0755;
-  } else {
-	stbuf->st_mode = S_IFREG | 0222;
+	stbuf->st_uid = 0;
+	stbuf->st_gid = 0;
+	stbuf->st_size = 0;
+	stbuf->st_nlink = 0;
+	return 0;
   }
+
+  stbuf->st_mode = S_IFREG | 0222;
   return 0;
 }
 
@@ -42,8 +48,36 @@ static int vernamfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   if( 1 )
 	printf( "%s: %s\n", __FUNCTION__, path );
 
-  return -ENOTSUP;
+  //  return -ENOTSUP;
+  return 0;
 }
+
+static int vernamfs_access( const char *path, int mask ) {
+  if( 1 )
+	printf( "%s: %s %x\n", __FUNCTION__, path, mask );
+
+  if( strcmp( path, "/" ) == 0 )
+	return 0;
+
+  if( 0 )
+	return -ENOENT;
+  
+  if( mask != W_OK )
+	return -EACCES;
+	  
+  return 0;
+}
+
+#if 0
+static int vernamfs_create( const char* path, mode_t mask,
+							struct fuse_file_info * fi ) {
+  if( 1 )
+	printf( "%s: %s %x\n", __FUNCTION__, path, mask );
+
+  return 0;
+}
+#endif
+
 
 /**
  * When a user program does
@@ -76,7 +110,7 @@ static int vernamfs_open( const char* path, struct fuse_file_info* fi ) {
   int sc = VFSAddEntry( &Global, path );
 
   // LOOK: make reporting a debug option...
-  if( 1 ) 
+  if( 0 ) 
 	VFSReport( &Global, 1 );
 
   return sc;
@@ -87,6 +121,18 @@ static int vernamfs_truncate(const char *path, off_t size) {
 	printf( "%s: %s %u\n", __FUNCTION__, path, (unsigned)size );
 
   return 0;
+}
+
+/*
+  Without any impl of unlink, any mv or rm on a file 'Function not
+  implemented'.  I prefer the result to be 'Operation not supported',
+  which we achieve by including this unlink impl. 
+*/ 
+static int vernamfs_unlink(const char *path) {
+  if( 1 )
+	printf( "%s: %s\n", __FUNCTION__, path );
+
+  return -ENOTSUP;
 }
 
 static int vernamfs_write(const char *path, const char *buf, size_t size,
@@ -100,7 +146,7 @@ static int vernamfs_write(const char *path, const char *buf, size_t size,
 
   size_t sc = VFSWrite( &Global, buf, size );
   
-  if( 1 )
+  if( 0 )
 	VFSReport( &Global, 1 );
 
   return sc == -1 ? -ENOSPC : sc;
@@ -116,7 +162,7 @@ static int vernamfs_release(const char *path, struct fuse_file_info *fi) {
   VFSRelease( &Global );
   VFSStore( &Global );
 
-  if( 1 )
+  if( 0 )
 	VFSReport( &Global, 1 );
 
   inUse = 0;
@@ -135,8 +181,11 @@ static void vernamfs_destroy(void* env ) {
 struct fuse_operations vernamfs_ops = {
   .getattr = vernamfs_getattr,
   .readdir = vernamfs_readdir,
+  .access = vernamfs_access,
+  //  .create = vernamfs_create,
   .open = vernamfs_open,
   .truncate = vernamfs_truncate,
+  .unlink = vernamfs_unlink,
   .write = vernamfs_write,
   .release = vernamfs_release,
   .destroy = vernamfs_destroy
