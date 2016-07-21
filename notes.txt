@@ -116,3 +116,58 @@ argv[3] = mounPoint
 argv[4] = NULL
 
 argc = 4
+
+
+********************************************************************************
+
+Jul 20 2016:
+
+Issues on arm-linux (c005):
+
+Trying
+
+$ mkdir mnt
+
+$ vernamfs mount some.otp mnt
+
+$ seq 100 > seq.100
+
+$ mv seq.100 mnt
+
+is not working.  Running the mv under strace:
+
+stat64("mnt/seq.100", {st_mode=S_IFREG|0222, st_size=0, ...}) = 0                                                                                        
+access("mnt/seq.100", W_OK)             = 0                                                                                                              
+rename("seq.100", "mnt/seq.100")        = -1 EXDEV (Invalid
+cross-device link)
+
+See how the rename short circuit for a mv fails.  Expected.  Recall
+likely the 'mv' command is from BusyBox.
+
+
+lstat64("seq.100", {st_mode=S_IFREG|0644, st_size=292, ...}) = 0                                                                                         
+unlink("mnt/seq.100")                   = 0                                                                                                              
+lstat64("seq.100", {st_mode=S_IFREG|0644, st_size=292, ...}) = 0                                                                                         
+lstat64("mnt/seq.100", {st_mode=S_IFREG|0222, st_size=0, ...}) = 0                                                                                       
+open("seq.100", O_RDONLY|O_LARGEFILE)   = 3                                                                                                              
+open("mnt/seq.100", O_WRONLY|O_CREAT|O_EXCL|O_LARGEFILE, 0100644) = -1
+EEXIST (File exists)
+
+This is the root of the failure.  Open returning -1.  Curiously, there
+is no call to vernamfs_open at all, so the -1 value must be returned
+from the main fuse library.
+
+
+unlink("mnt/seq.100")                   = 0                                                                                                              
+open("mnt/seq.100", O_WRONLY|O_CREAT|O_EXCL|O_LARGEFILE, 0100644) = -1 EEXIST (File exists)                                                              
+write(2, "mv: can't open 'mnt/seq.100': Fil"..., 42mv: can't open 'mnt/seq.100': File exists  
+
+The sequence of calls we see for the attempted mv is:
+
+vernamfs_getattr: /                                                             
+vernamfs_getattr: /seq.100                                                      
+vernamfs_unlink: /seq.100                                                       
+vernamfs_getattr: /seq.100                                                      
+vernamfs_unlink: /seq.100                                                       
+
+Note no opens!
