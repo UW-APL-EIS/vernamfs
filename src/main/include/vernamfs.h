@@ -163,7 +163,7 @@ typedef struct {
   */
   uint64_t dataOffset;
   uint64_t dataPtr;
-  void* backing;
+  //  void* backing;
 } VFSHeader;
 
 /*

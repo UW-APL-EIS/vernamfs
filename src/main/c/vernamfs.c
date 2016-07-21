@@ -110,9 +110,26 @@ size_t VFSWrite( VFS* thiz, const void* buf, size_t count ) {
 	unreadable (LOOK: Is this costing us a byte-by-byte write to
 	backing store??)
   */
-  for( i = 0; i < actual; i++ )
-	dest[i] ^= src[i];
 
+  // Thought a word-at-a-time copy would be faster, it isn't!
+  if( 0 ) {
+	int words = actual / sizeof( size_t );
+	int bytes = actual - words * sizeof( size_t );
+
+	size_t* destS = (size_t*)dest;
+	size_t* srcS = (size_t*)src;
+	for( i = 0; i < words; i++ )
+	  destS[i] ^= srcS[i];
+	dest += words * sizeof( size_t );
+	src += words * sizeof( size_t );
+	for( i = 0; i < bytes; i++ )
+	  dest[i] ^= src[i];
+	
+  } else {
+	for( i = 0; i < actual; i++ )
+	  dest[i] ^= src[i];
+  }
+	
   // Update the data ptr and total length of the file being written...
   h->dataPtr += actual;
   totalLength += actual;
@@ -184,6 +201,11 @@ static int VFSHeaderInit( VFSHeader* thiz, size_t length,
 
   uint64_t minDataArea = maxFiles * padding;
 
+#if 0
+  printf( "TO %d, TE %d, DM %d\n",
+	  (int)tableOffset, (int)tableExtent, (int)minDataArea );
+#endif
+  
   /*
 	Given table offset and extent plus minDataArea, have a lower bound
 	on space required for the VFS.
