@@ -42,10 +42,32 @@
  * @see rls.c
  */
 
+static CommandOption r = 
+  { .id = "r", 
+	.text = "Print raw file table content. Default is readable listing." };
+
+static CommandOption* options[] = { &r, NULL };
+
+static char example1[] = 
+  "$ vernamfs vls OTP.vault rlsResult";
+
+static char example2[] = 
+  "$ vernamfs vls -r OTP.vault rlsResult";
+
+static char example3[] = 
+  "$ cat rlsResult | vernamfs vls OTP.vault";
+
+static char example4[] = 
+  "$ vernamfs rls OTP.remote | vernamfs vls OTP.vault";
+
+static char* examples[] = { example1, example2, example3, example4, NULL };
+
 static CommandHelp help = {
-  .summary ="Combine vault, remote listings. Recovers remote file metadata",
-  .synopsis = "-r? OTPVAULT rlsResult|STDIN",
-  .description = "vls desc",
+  .summary ="Recover encrypted file listing",
+  .synopsis = "[<options>] OTPVAULT rlsResultFile|STDIN",
+  .description = "Recover remote file listing, showing name and size of each allocated file.\n  Does this by combining remote ls result and local vault copy of the OTP.\n  Remote ls result supplied as a file, or on stdin.",
+  .options = options,
+  .examples = examples,
 };
 
 Command vlsCmd = {
@@ -74,7 +96,7 @@ int vlsArgs( int argc, char* argv[] ) {
   if( optind < argc ) {
 	vaultFile = argv[optind];
   } else {
-	fprintf( stderr, "Usage: %s\n", help.synopsis );
+	commandHelp( &vlsCmd );
 	return -1;
   }
 

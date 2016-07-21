@@ -139,8 +139,9 @@ int init( char* file, int maxFiles, int maxFileNameLength,
   }
   
   lseek( fd, 0, SEEK_SET );
-  int nout = write( fd, &vfs.header, sizeof( VFSHeader ) );
-  if( nout != sizeof( VFSHeader ) ){
+  int len = sizeof( VFSHeader );
+  int nout = write( fd, &vfs.header, len );
+  if( nout != len ) {
 	perror( "init.write" );
 	close( fd );
 	return -1;

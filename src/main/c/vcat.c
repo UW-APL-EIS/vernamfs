@@ -34,21 +34,21 @@
  */
 
 static CommandHelp help = {
-  .summary = "Combine vault, remote cat sections. Recovers remote file content",
-  .synopsis = "OTPVAULT rcatResult rlsResult?",
-  .description = "vcat desc",
+  .summary = "Recover encrypted file content",
+  .synopsis = "OTPVault rcatResult rlsResult?",
+  .description = "Recover remote file content, by combining remote cat result and local vault\n  copy of the OTP. If remote ls result supplied, recovered content is\n  written to named file, else written to stdout.",
 };
 
 Command vcatCmd = {
   .name = "vcat",
-	.help = &help,
+  .help = &help,
   .invoke = vcatArgs
 };
 
 int vcatArgs( int argc, char* argv[] ) {
 
   if( argc < 3 ) {
-	fprintf( stderr, "%s\n", help.synopsis );
+	commandHelp( &vcatCmd );
 	return -1;
   }
 
