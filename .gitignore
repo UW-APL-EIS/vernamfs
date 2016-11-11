@@ -2,4 +2,6 @@ version.h
 *.o
 *.zip
 
+*.tex
+
 # eof
