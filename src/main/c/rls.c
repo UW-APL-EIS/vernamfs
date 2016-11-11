@@ -5,9 +5,9 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-#include "cmds.h"
-#include "vernamfs.h"
-#include "remote.h"
+#include "vernamfs/cmds.h"
+#include "vernamfs/vernamfs.h"
+#include "vernamfs/remote.h"
 
 /**
  * @author Stuart Maclean

@@ -60,7 +60,8 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 /* Includes:                                                                 */
 /*****************************************************************************/
 #include <stdint.h>
-#include "aes128.h"
+
+#include "vernamfs/aes128.h"
 
 
 /*****************************************************************************/

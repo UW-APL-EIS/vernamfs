@@ -4,8 +4,8 @@
 
 #include <fuse.h>
 
-#include "cmds.h"
-#include "vernamfs.h"
+#include "vernamfs/cmds.h"
+#include "vernamfs/vernamfs.h"
 
 /**
  * @author Stuart Maclean

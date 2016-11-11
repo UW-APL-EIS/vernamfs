@@ -61,7 +61,7 @@ LOADLIBES ?= `pkg-config --libs fuse`
 # versions may work.
 CPPFLAGS += -DFUSE_USE_VERSION=25
 
-CPPFLAGS += -I$(BASEDIR)/src/main/include
+CPPFLAGS += -I$(BASEDIR)/src/main/include/
 
 LDLIBS += -lm
 
@@ -83,20 +83,21 @@ vernamfs: $(MAINOBJS)
 $(TESTS) $(TOOLS): % : %.o
 	$(CC) $^ $(LDFLAGS) $(LOADLIBES) $(LDLIBS) $(OUTPUT_OPTION)
 
-$(BASEDIR)/src/main/include/version.h : $(BASEDIR)/Makefile
+$(BASEDIR)/src/main/include/vernamfs/version.h : $(BASEDIR)/Makefile
 	@echo "#define MAJOR_VERSION" $(MAJOR_VERSION) | tee $@
 	@echo "#define MINOR_VERSION" $(MINOR_VERSION) | tee -a $@
 	@echo "#define PATCH_VERSION" $(PATCH_VERSION) | tee -a $@
 
 .PHONY: clean
 clean:
-	rm $(BINARIES) $(TESTS) *.o $(BASEDIR)/src/main/include/version.h
+	rm $(BINARIES) $(TESTS) *.o \
+	$(BASEDIR)/src/main/include/vernamfs/version.h
 
 .PHONY: zip
 zip:
 	git archive -o vernamfs-$(VERSION).zip \
 	--prefix vernamfs-$(VERSION)/ HEAD
 
-vernamfs.o : vernamfs.c $(BASEDIR)/src/main/include/version.h
+vernamfs.o : vernamfs.c $(BASEDIR)/src/main/include/vernamfs/version.h
 
 # eof

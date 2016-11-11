@@ -6,8 +6,8 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-#include "cmds.h"
-#include "vernamfs.h"
+#include "vernamfs/cmds.h"
+#include "vernamfs/vernamfs.h"
 
 static CommandHelp help = {
   .summary = "Combine vault, remote pads. Recovers entire remote data",

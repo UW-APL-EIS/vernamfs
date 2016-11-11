@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cmds.h"
+#include "vernamfs/cmds.h"
 
 Command** cmds;
 int N;

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "cmds.h"
+#include "vernamfs/cmds.h"
 
 /**
  * @author Stuart Maclean

@@ -9,8 +9,8 @@
 
 #include <fuse.h>
 
-#include "cmds.h"
-#include "vernamfs.h"
+#include "vernamfs/cmds.h"
+#include "vernamfs/vernamfs.h"
 
 static CommandOption f = { .id = "f", .text = "Fuse mount in foreground." };
 static CommandOption d = { .id = "d", .text = "Fuse mount in debug mode." };

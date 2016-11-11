@@ -5,7 +5,7 @@
 
 #include <fuse.h>
 
-#include "vernamfs.h"
+#include "vernamfs/vernamfs.h"
 
 /**
  * @author Stuart Maclean

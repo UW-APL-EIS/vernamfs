@@ -5,15 +5,17 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "vernamfs.h"
-#include "version.h"
+#include "vernamfs/vernamfs.h"
+#include "vernamfs/version.h"
 
 /**
  * @author Stuart Maclean
  *
  * The vernamfs 'back end'.  Called by fuse routines. Could also in
  * theory be called directly by programs linking to Vernamfs as a
- * library, if FUSE were not available.
+ * library, if FUSE were not available.  Advantage of FUSE is that it
+ * provides the serialization we require to ensure no byte of the OTP
+ * is ever written to twice.
  */
 
 static uint64_t alignUp( uint64_t val, uint64_t boundary );

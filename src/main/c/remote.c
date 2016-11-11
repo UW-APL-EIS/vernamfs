@@ -2,7 +2,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "remote.h"
+#include "vernamfs/remote.h"
+
+/**
+ * @author Stuart Maclean
+ *
+ * LOOK: What is this struct for?
+ */
 
 VFSRemoteResult* VFSRemoteResultRead( int fd ) {
   

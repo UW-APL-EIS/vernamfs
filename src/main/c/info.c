@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#include "cmds.h"
-#include "vernamfs.h"
+#include "vernamfs/cmds.h"
+#include "vernamfs/vernamfs.h"
 
 static CommandOption e = 
   { .id = "e", 

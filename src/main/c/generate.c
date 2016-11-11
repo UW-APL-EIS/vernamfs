@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "cmds.h"
-#include "aes128.h"
+#include "vernamfs/cmds.h"
+#include "vernamfs/aes128.h"
 
 /**
  * @author Stuart Maclean
