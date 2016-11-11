@@ -56,7 +56,9 @@
 
   2: files can be added 2+ times.  Any second (third, etc) write does
   NOT append to the orginal data.  Rather, it is treated as a separate
-  file.  
+  file.  So a file with name F and content C1 can be added, and later
+  a file also with name F but with content C2 can be added.  As far as
+  the VernamFS is concerned, these files are unrelated.
 
   In essence, the 'filesystem' is just a list of pairs (P,C) where P
   is a string resembling a Unix file name, and C is the content (byte
@@ -69,8 +71,8 @@
 
   Only the header is ever stored 'as is' (in the clear) into the
   backing store.  It must be, since it is updated as files are written
-  to the VFS.  These writes must move along a 'table pointer' and a
-  'data pointer'.
+  to the VFS.  The header must there be readable as well as writable.
+  The writes must move along a 'table pointer' and a 'data pointer'.
 
   The table and data areas are stored by first reading the original
   OTP data at those offsets, xor'ing the plain text info (table entry
