@@ -100,12 +100,21 @@
 */
 #define VERNAMFS_MAGIC ((uint64_t)0x53464d414e524556LL)
 
+/*
+  Over time, we want to support variants of the Vernamfs.  For nowm
+  our initial implementation is the 'encrypted FAT' variant
+*/
+#define FILESYSTEMTYPE_ENCRYPTEDFAT (1)
+
+
 // For structs serialised to disk, ensure zero padding...
 #pragma pack(1)
 
 typedef struct {
   uint64_t magic;
   
+  uint32_t type;
+
   /*
     Allow versioning over time. By burning the version info into the
     backing store, newer versions of code can identify/understand
@@ -165,7 +174,7 @@ typedef struct {
   */
   uint64_t dataOffset;
   uint64_t dataPtr;
-  //  void* backing;
+
 } VFSHeader;
 
 /*

@@ -217,6 +217,7 @@ static int VFSHeaderInit( VFSHeader* thiz, size_t length,
   }
 
   thiz->magic = VERNAMFS_MAGIC;
+  thiz->type = FILESYSTEMTYPE_ENCRYPTEDFAT;
   thiz->version = (MAJOR_VERSION << 16) | (MINOR_VERSION << 8) |
 	PATCH_VERSION;
   thiz->flags = 0;
@@ -240,6 +241,7 @@ static void VFSHeaderReport( VFSHeader* h, int expert ) {
 	int min = (h->version >> 8) & 0xff;
 	int patch = h->version & 0xff;
 	printf( "Version       : %d.%d.%d\n", maj, min, patch );
+	printf( "Type          : %d\n", h->type );
 	printf( "Flags         : 0x%04X\n", h->flags );
 	printf( "Padding       : 0x%"PRIx64"\n", h->padding );
 	printf( "Length        : 0x%"PRIx64"\n", h->length );
