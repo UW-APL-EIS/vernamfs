@@ -44,10 +44,26 @@ static int hexOrDecimal( char* s ) {
   return atoi( s );
 }
 
+static char example1[] = 
+  "remote$ vernamfs rls OTP.remote > remote.ls";
+static char example2[] = 
+  "vault$  vernamfs vls OTP.vault remote.ls\n"
+  "    /foo 0x1234 0x5678";
+static char example3[] = 
+  "remote$ vernamfs rcat OTP.remote 0x1234 0x5678 > remote.cat";
+static char example4[] = 
+  "vault$  vernamfs vcat OTP.vault remote.cat";
+static char example5[] = 
+  "vault$  vernamfs vcat OTP.vault remote.cat remote.ls";
+
+static char* examples[] = { example1, example2, example3, 
+							example4, example5, NULL };
+
 static CommandHelp help = {
-  .summary = "Cat section of a remote pad",
+  .summary = "Cat section of a remote VernamFS",
   .synopsis = "OTPREMOTE offset length",
-  .description = "rcat desc",
+  .description = "Extracts a byte sequence from the OTP on the remote unit.\n  Result is encrypted, but can be presumably be brought back to the vault,\n  where it can be decrypted with the OTP vault copy.\n  To derive the offset and length, first run rls, vls. If the rls result\n  is passed to vcat, the recovered content is written to the identified\n  file, else to stdout.",
+  .examples = examples
 };
 
 Command rcatCmd = {
@@ -59,7 +75,7 @@ Command rcatCmd = {
 int rcatArgs( int argc, char* argv[] ) {
 
   if( argc < 4 ) {
-	fprintf( stderr, "Usage: %s\n", help.synopsis );
+	commandHelp( &rcatCmd );
 	return -1;
   }
 

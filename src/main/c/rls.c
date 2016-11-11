@@ -38,10 +38,18 @@
  * @see vls.c
  */
 
+static char example1[] = 
+  "remote$ vernamfs rls OTP.remote > remote.ls";
+static char example2[] = 
+  "vault$  vernamfs vls OTP.vault remote.ls";
+
+static char* examples[] = { example1, example2, NULL };
+
 static CommandHelp help = {
-  .summary = "List remote pad file metadata",
-  .synopsis = "rls sys",
-  .description = "rls DESC",
+  .summary = "List metadata of a remote VernamFS",
+  .synopsis = "OTPFILE",
+  .description = "Performs a file table (FAT) listing on the remote unit.\n  Result is encrypted, but can be presumably be brought back to the vault,\n  where it can be decrypted with the OTP vault copy.",
+  .examples = examples
 };
 
 Command rlsCmd = {
@@ -53,7 +61,7 @@ Command rlsCmd = {
 int rlsArgs( int argc, char* argv[] ) {
 
   if( argc < 2 ) {
-	fprintf( stderr, "Usage: %s\n", help.synopsis );
+	commandHelp( &rlsCmd );
 	return -1;
   }
 

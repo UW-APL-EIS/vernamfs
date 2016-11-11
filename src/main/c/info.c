@@ -12,7 +12,6 @@ static CommandOption e =
 
 static CommandOption* options[] = { &e, NULL };
 
-
 static char example1[] = 
   "$ vernamfs generate -z 16 > 64K.pad";
 
@@ -53,6 +52,7 @@ int infoArgs( int argc, char* argv[] ) {
 
   if( optind+1 > argc ) {
 	commandHelp( &infoCmd );
+	return -1;
   }
   char* file = argv[optind];
   

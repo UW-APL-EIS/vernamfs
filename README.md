@@ -69,17 +69,17 @@ $ sudo apt-get install libfuse-dev
 
 ## Build
 
-We have built VernamFS for both x86 and ARM environments.  Most
-likely, you want to try it on your laptop/desktop, a so-called
-'native' environment.  The code is built and runs on the same the
-machine/architecture:
+We have built VernamFS for both x86 and ARM environments (our remote
+sensor is ARM-based).  Most likely, you want to try it on your
+laptop/desktop, a so-called 'native' environment.  The code is built
+and runs on the same the machine/architecture:
 
 ```
-$ cd /path/to/vernamfs/target/native
+$ cd /path/to/vernamfs
 
 $ make
 
-$ vernamfs	(or ./vernamfs if . not in your PATH)
+$ ./vernamfs
 ```
 
 should produce a short usage/help summary.
@@ -512,11 +512,13 @@ security and one-time-pads.
 
 * http://fuse.sourceforge.net/
 
+# Credit/Contact
+
+Original Idea for the OneTimePad FileSystem by Richard
+Campbell. This implementation by Stuart Maclean.
+
 Stuart Maclean
-mailto:stuart@apl.washington.edu
-November 2015
-
-
+mail2 stuart AT apl DOT washington DOT edu
 
 
 
