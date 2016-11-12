@@ -50,8 +50,7 @@ To build VernamFS on Linux, these tools/libraries are required:
 
 4. FUSE header (.h) and library (.a, .so) files
 
-5. Useful by not required: xxd, strings for binary data
-inspection
+5. Useful by not required: xxd, strings for binary data inspection
 
 For FUSE, check existence of /usr/include/fuse.h. If missing, install
 fuse development package. On Fedora-based systems:
@@ -69,10 +68,10 @@ $ sudo apt-get install libfuse-dev
 
 ## Build
 
-We have built VernamFS for both x86 and ARM environments (our remote
-sensor is ARM-based).  Most likely, you want to try it on your
-laptop/desktop, a so-called 'native' environment.  The code is built
-and runs on the same the machine/architecture:
+We have built VernamFS for both x86 and ARM environments (our
+remotely-deployed sensor is ARM-based).  Most likely, you want to try
+it on your laptop/desktop, a so-called 'native' environment.  The code
+is built and runs on the same the machine/architecture:
 
 ```
 $ cd /path/to/vernamfs
@@ -89,7 +88,7 @@ As with git, there is just a single binary for VernamFS, namely
 
 ## Usage
 
-### OTP Creation
+### One Time Pad Creation
 
 First step is to create a one-time pad file.  Traditional Linux way is
 via /dev/random (best, but slowest) or /dev/urandom (inferior, but
@@ -117,9 +116,9 @@ test key.  The result of the generator is written to stdout, so use a
 redirect to capture it to a file/device:
 
 ```
-$ vernamfs generate -z 20 > OTP
+$ ./vernamfs generate -z 20 > OTP
 
-$ vernamfs generate -z 30 > /dev/sdCard
+$ ./vernamfs generate -z 30 > /dev/sdCard
 ```
 
 In the case of a real, user-derived key, the generator expects a
@@ -133,9 +132,9 @@ $ echo The cat sat on the mat | md5sum | cut -b 1-32 > KEY
 and that key fed to the generator via pipe or redirect:
 
 ```
-$ vernamfs generate 20 < KEY > OTP
+$ ./vernamfs generate 20 < KEY > OTP
 
-$ cat KEY | vernamfs generate 30 > /dev/sdCard
+$ cat KEY | ./vernamfs generate 30 > /dev/sdCard
 ```
 
 ## VernamFS Initialization
@@ -152,14 +151,17 @@ the maximum number of files we expect to create on the OTP, say 1024,
 at initialization time:
 
 ```
-$ vernamfs init OTP 1024
+$ ./vernamfs init OTP 1024
 ```
 
 We can inspect the resultant 'header' on the OTP via the info
 subcommand, which simply pretty-prints the stored header:
 
 ```
-$ vernamfs info OTP
+$ ./vernamfs info OTP
+
+// Expert-mode, shows all header members
+$ ./vernamfs info OTP -e
 ```
 
 The info command can be run at any time, not just after initialization.
@@ -195,7 +197,7 @@ where commands are run.
 With the original OTP now installed in the remote unit, along with the
 vernamfs program, we make the OTP available for writing processes.
 This uses the magic of FUSE, making the VernamFS largely transparent
-to the filesystem user.  The mount subcommand initiates a FUSE daemon
+to the remote filesystem user.  The mount subcommand initiates a FUSE daemon
 process:
 
 ```
@@ -228,7 +230,7 @@ remote$ seq 1000 > mnt/File3
 ```
 
 Operations on the VernamFS are of course not limited to existing
-programs (echo,cp,etc).  Any program which uses the open/write/close
+programs (echo,cp,seq,etc).  Any program which uses the open/write/close
 system call sequence can use the VernamFS.
 
 One unfortunate property of the VernamFS, due entirely to how FUSE and
@@ -248,15 +250,15 @@ names. It cannot. They are XOR-encrypted when written to disk, just
 like the file content.
 
 VernamFS isn't really a filesystem at all.  It doesn't really deal in
-'files' as we know them.  Instead, a VernamFS is more a list of
+'files' as we know them.  Instead, a VernamFS is more a growing list of
 elements E where each E is a pair: a name string S which resembles a
-file path and some content (a byte sequence) C associated with S.
+file path and some content C (a byte sequence) associated with S.
 Elements can be added, but never removed.  Moreover, elements cannot
 be listed (an unlistable list!), so we cannot print any name S.  Nor
 can we read any C.  There are no owners, groups, permissions, creation
 times, etc.  S and C is all there is for any given 'file'.
 
-The filesystem is truly write-only:
+The filesystem is truly write-only.  These read operation fail:
 
 ```
 remote$ ls mnt
@@ -318,7 +320,7 @@ Thus data in the field is completely unintelligible to anyone gaining
 access to the remote unit.
 
 Once the field unit, with its OTP, is recovered and transported back
-to vault location, it is simply combined with the vault copy and the
+to the vault location, it is simply combined with the vault copy and the
 original stored data recovered.  This is essentially one large XOR
 operation over the entire (used portion) of the OTPs.  The VernamFS
 recover subcommand handles this operation.  We supply a directory to
@@ -328,7 +330,7 @@ hold all the newly-created files:
 vault$ ship remote OTP to here
 vault$ mv /some/safe/place/OTP.V .
 vault$ mkdir data
-vault$ vernamfs recover OTP OTP.V data  (NOT DONE YET)
+vault$ vernamfs recover OTP OTP.V data
 ```
 
 As per the requirements of any OTP, we can _never_ re-use the pad data.
@@ -474,7 +476,7 @@ vault$ vernamfs vcat OTP.V rcat.0x2000.4 > File1
 
 If the rls result is still available, it can automate the saving of
 the recovered data to a file whose name matches that on the remote
-unit.  It is passed as an optional third argument to vls:
+unit.  It is passed as an optional third argument to vcat:
 
 ```
 vault$ vernamfs vcat OTP.V rcat.0x2000.4 rls.result
@@ -489,9 +491,14 @@ pad, i.e a stream of random bytes.  VernamFS imposes a basic structure
 on that file: a header, a file metadata area, and a content area.
 
 For every file allocation and file content write, the following
-happens.
+happens.  First, we allocate a new file by using the next available
+file table entry in the file allocation table.  This available entry
+is stored in the header.  The file name to be stored is XOR'ed with
+the contents of the OTP at that location, and the results written back
+to the OTP at the same location.  A similar sequence of 'allocate
+space, read OTP content, XOR with new file content, write results back
+to OTP' is performed for file content storage.
 
-TO FINISH
 
 ## Concerns
 
@@ -518,6 +525,9 @@ Original Idea for the OneTimePad FileSystem by Richard
 Campbell. This implementation by Stuart Maclean.
 
 Stuart Maclean
+Applied Physics Laboratory
+University of Washington
+
 mail2 stuart AT apl DOT washington DOT edu
 
 
