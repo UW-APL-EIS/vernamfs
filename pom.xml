@@ -87,7 +87,7 @@
       <plugin>
 	<groupId>com.mycila</groupId>
 	<artifactId>license-maven-plugin</artifactId>
-	<version>2.5</version>
+	<version>2.11</version>
 	<configuration>
 	      <header>LICENSE.txt</header>
 	      <quiet>false</quiet>
@@ -107,6 +107,9 @@
 		<include>src/test/c/*.c</include>
 		<include>**/Makefile</include>
 	      </includes>
+	      <mapping>
+		<Makefile>SCRIPT_STYLE</Makefile>
+	      </mapping>
 	    </configuration>
 	  </execution>
 	</executions>
