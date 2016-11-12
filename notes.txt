@@ -1,0 +1,173 @@
+11/03/2015
+
+Implementing a one time pad (OTP) filesystem, from ideas from Sabo/Campbell.
+
+Like VirtualBox, VMware engines and their layout of virtual drives, we
+need a 
+
+Header
+Table, like a FAT (DOS)
+Data
+
+The FAT is likely fixed at creation time.  
+
+Aspects of the Table and Data area are stored in the Header, much like
+the 'superblock' of a filesystem.
+
+The backing store is the one time pad data, of some length.
+
+The Table takes up N sectors/pages of the OTP.  Its entries are
+
+1 name, say 128 bytes.  Written once, so NOT plaintext-stored.
+
+2 offset, in sectors/pages/bytes: written once, so NOT
+plaintext-stored
+
+3 length, in bytes.  Updated, so MUST be stored in the clear??  But
+NOT if length held until 'close' in ram only.
+
+Need two pointers, both of which ARE stored in the clear in the
+Header.
+
+1 Offset of next FAT entry, or index, equivalent.
+
+2 Offset of next data write
+
+11/4/15:
+
+Suddenly odd fuse mount errors.  i am not understanding how my argc,
+argv re-allocation is somehow confusing fuse. I want to do this:
+
+./vernamfs mount OPTFILE fuseOptions mountPoint
+
+so i skip past 3 cmd line args: 
+
+1 vernamfs
+
+2 'mount' sub-command
+
+3 OPTFILE
+
+so I invoke fuse_main with argc-3, argv+3
+
+But it is not working.  How much of the 'real' cmd line does fuse_main
+expect/need to see?
+
+
+With version 26 -> fuse_main takes 4 args
+
+With version 25 (and earlier?) -> takes 3 args.
+
+
+vfs mount FILE -d mountPoint NULL
+
+0   1     2    3  4          5  argc = 5
+
+want
+
+vfs -d mountPoint NULL 
+
+0    1  2         3  argc = 3
+
+So 3 -> 1, 4 -> 2, 5 -> 3  and argc -= 2
+
+newArgc = argc - 2
+
+for i = 1, i <= newArgc, i++
+  argv[i] = argv[i+2]
+
+vfs cmd FILE mountPoint NULL
+
+argc = 4
+
+newArgc = 2
+
+for i = 1; <= 2; i++
+
+  argv[1] = mountPoint
+  argv[2] = NULL
+
+BUT: we must have a -s in there too, so use argv[1], was cmd, to hold
+-s, and shift fuseOptions down 1, NOT 2.
+
+vfs cmd FILE mountPoint NULL
+
+argc = 4
+
+to
+
+vfs -s mountPoint NULL
+
+argc = 3
+
+argv[1] = -s
+
+for i = 2; i < argc; i++
+  argv[i] = argv[i+1]
+
+vfs cmd file -f mounPoint NULL   argc = 5
+
+argv[1] = -s
+
+argv[2] = -f
+
+argv[3] = mounPoint
+
+argv[4] = NULL
+
+argc = 4
+
+
+********************************************************************************
+
+Jul 20 2016:
+
+Issues on arm-linux (c005):
+
+Trying
+
+$ mkdir mnt
+
+$ vernamfs mount some.otp mnt
+
+$ seq 100 > seq.100
+
+$ mv seq.100 mnt
+
+is not working.  Running the mv under strace:
+
+stat64("mnt/seq.100", {st_mode=S_IFREG|0222, st_size=0, ...}) = 0                                                                                        
+access("mnt/seq.100", W_OK)             = 0                                                                                                              
+rename("seq.100", "mnt/seq.100")        = -1 EXDEV (Invalid
+cross-device link)
+
+See how the rename short circuit for a mv fails.  Expected.  Recall
+likely the 'mv' command is from BusyBox.
+
+
+lstat64("seq.100", {st_mode=S_IFREG|0644, st_size=292, ...}) = 0                                                                                         
+unlink("mnt/seq.100")                   = 0                                                                                                              
+lstat64("seq.100", {st_mode=S_IFREG|0644, st_size=292, ...}) = 0                                                                                         
+lstat64("mnt/seq.100", {st_mode=S_IFREG|0222, st_size=0, ...}) = 0                                                                                       
+open("seq.100", O_RDONLY|O_LARGEFILE)   = 3                                                                                                              
+open("mnt/seq.100", O_WRONLY|O_CREAT|O_EXCL|O_LARGEFILE, 0100644) = -1
+EEXIST (File exists)
+
+This is the root of the failure.  Open returning -1.  Curiously, there
+is no call to vernamfs_open at all, so the -1 value must be returned
+from the main fuse library.
+
+
+unlink("mnt/seq.100")                   = 0                                                                                                              
+open("mnt/seq.100", O_WRONLY|O_CREAT|O_EXCL|O_LARGEFILE, 0100644) = -1 EEXIST (File exists)                                                              
+write(2, "mv: can't open 'mnt/seq.100': Fil"..., 42mv: can't open 'mnt/seq.100': File exists  
+
+The sequence of calls we see for the attempted mv is:
+
+vernamfs_getattr: /                                                             
+vernamfs_getattr: /seq.100                                                      
+vernamfs_unlink: /seq.100                                                       
+vernamfs_getattr: /seq.100                                                      
+vernamfs_unlink: /seq.100                                                       
+
+Note no opens!
