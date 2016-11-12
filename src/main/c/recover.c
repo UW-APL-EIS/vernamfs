@@ -9,10 +9,16 @@
 #include "vernamfs/cmds.h"
 #include "vernamfs/vernamfs.h"
 
+static char example1[] = 
+  "$ vernamfs recover 16MB.R 16MB.V outDir";
+
+static char* examples[] = { example1, NULL };
+
 static CommandHelp help = {
-  .summary = "Combine vault, remote pads. Recovers entire remote data",
+  .summary = "Combine vault, remote pads to recover entire remote data",
   .synopsis = "OTPREMOTE OTPVAULT outputDir",
-  .description = "recover DESC",
+  .description = "Recover XORs the retrieved remote OTP with the locally held original\n  vault copy to reveal the plaintext remote data. Results are stored into\n  a specified local directory.",
+  .examples = examples
 };
 
 Command recoverCmd = {
@@ -24,11 +30,14 @@ Command recoverCmd = {
 int recoverArgs( int argc, char* argv[] ) {
 
   if( argc < 4 ) {
-	fprintf( stderr, "Usage: %s\n", help.synopsis );
+	commandHelp( &recoverCmd );
 	return -1;
   }
 
-  return recover( argv[1], argv[2], argv[3] );
+  char* otpRemote = argv[1];
+  char* otpVault = argv[2];
+  char* resultsDir = argv[3];
+  return recover( otpRemote, otpVault, resultsDir );
 }
 
 int recover( char* otpRemote, char* otpVault, char* outputDir ) {

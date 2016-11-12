@@ -33,10 +33,20 @@
  * @see remote.c
  */
 
+static char example1[] = 
+  "remote$ vernamfs rcat OTP.remote 0x1234 0x5678 > remote.cat";
+static char example2[] = 
+  "vault$  vernamfs vcat OTP.vault remote.cat";
+static char example3[] = 
+  "vault$  vernamfs vcat OTP.vault remote.cat remote.ls";
+
+static char* examples[] = { example1, example2, example3, NULL };
+
 static CommandHelp help = {
   .summary = "Recover encrypted file content",
   .synopsis = "OTPVault rcatResult rlsResult?",
   .description = "Recover remote file content, by combining remote cat result and local vault\n  copy of the OTP. If remote ls result supplied, recovered content is\n  written to named file, else written to stdout.",
+  .examples = examples
 };
 
 Command vcatCmd = {
