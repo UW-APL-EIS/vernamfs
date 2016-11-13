@@ -60,6 +60,8 @@
 
 BASEDIR ?= $(abspath .)
 
+# Public tagged release may be later than version defined here,
+# in which case the later tag is purely for documentation purposes.
 MAJOR_VERSION = 1
 MINOR_VERSION = 0
 PATCH_VERSION = 0
