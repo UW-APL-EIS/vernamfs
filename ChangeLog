@@ -1,3 +1,8 @@
+2016-11-13  stuart  <stuart@apl.uw.edu>
+
+	* Release 1.0.1:  Purely an update of the github README file to
+	advertise our versioning strategies.  No code changes over 1.0.0.
+
 2016-11-11  stuart  <stuart@apl.uw.edu>
 
 	* Release 1.0.0: Initial release.  A FUSE-based filesystem for
