@@ -33,7 +33,7 @@ bitwise-XOR.
 
 This git repository follows [Driessen's]
 (http://nvie.com/posts/a-successful-git-branching-model/) strategies
-for branching strategy and release management.  The latest tagged
+for branching and release management.  The latest tagged
 release is [1.0.0]
 (https://github.com/UW-APL-EIS/vernamfs/tree/1.0.0), which is also the
 head of the [master]
