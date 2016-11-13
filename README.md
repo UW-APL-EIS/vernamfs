@@ -29,6 +29,21 @@ problem is moot.  Finally, it is not reliant on the quality (or lack
 thereof!) of any random number generator (RNG). It needs only
 bitwise-XOR.
 
+## Versioning
+
+This git repository follows [Driessen's]
+(http://nvie.com/posts/a-successful-git-branching-model/) strategies
+for branching strategy and release management.  The latest tagged
+release is [1.0.0]
+(https://github.com/UW-APL-EIS/vernamfs/tree/1.0.0), which is also the
+head of the [master]
+(https://github.com/UW-APL-EIS/vernamfs/tree/master) branch. The
+[develop] (https://github.com/UW-APL-EIS/vernamfs/tree/develop) branch
+likely contains ideas/code newer than that most recent tag.
+
+Though VernamFS is a standalone application and is unlikely to become
+a dependency of any other work, we follow the model of
+[semantic versioning] (http://semver.org/) for all tagged releases.
 
 ## Prerequisites
 
@@ -525,7 +540,9 @@ Original Idea for the OneTimePad FileSystem by Richard
 Campbell. This implementation by Stuart Maclean.
 
 Stuart Maclean
+
 Applied Physics Laboratory
+
 University of Washington
 
 mail2 stuart AT apl DOT washington DOT edu
