@@ -58,7 +58,8 @@
 # platforms, currently just for arm-linux.  See ./arm-linux/Makefile
 # for details.
 
-BASEDIR ?= $(abspath .)
+BASEDIR ?= .
+#$(abspath .)
 
 # Public tagged release may be later than version defined here,
 # in which case the later tag is purely for documentation purposes.
@@ -76,13 +77,13 @@ TOOLS = headerInfo
 
 MAINSRCDIR = $(BASEDIR)/src/main/c
 
-MAINSRCS = $(shell cd $(MAINSRCDIR) && ls *.c)
+MAINSRCS = $(shell cd $(MAINSRCDIR) && ls *.c | sort)
 
 MAINOBJS = $(MAINSRCS:.c=.o)
 
 TESTSRCDIR = $(BASEDIR)/src/test/c
 
-VPATH = $(MAINSRCDIR) $(TESTSRCDIR)
+VPATH = $(MAINSRCDIR):$(TESTSRCDIR)
 
 CC ?= gcc
 

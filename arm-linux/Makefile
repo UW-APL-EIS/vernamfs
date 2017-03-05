@@ -63,6 +63,7 @@ LOADLIBES += -L$(FUSE_HOME)/usr/local/lib -lfuse
 endif
 
 BASEDIR = $(abspath ..)
+BASEDIR = ..
 include $(BASEDIR)/Makefile
 
 # eof
